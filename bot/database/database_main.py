@@ -1,8 +1,7 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, DeclarativeBase, registry
-
+from sqlalchemy import create_engine, String
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from typing import Annotated
 from bot.database.config import settings
-from bot.database.models.type_annotation_map import *
 
 engine = create_engine(
     url=settings.DATABASE_URL,
@@ -11,14 +10,14 @@ engine = create_engine(
 
 session_factory = sessionmaker(engine)
 
+str_50 = Annotated[str, 50]
+str_100 = Annotated[str, 100]
+str_512 = Annotated[str, 512]
 
-# Базовый класс с использованием аннотированных типов
-# class Base(DeclarativeBase):
-#     registry = registry(
-#         type_annotation_map={
-#             str_50: String(50),
-#             str_100: String(100),
-#         }
-#     )
+
 class Base(DeclarativeBase):
-    pass
+    type_annotation_map = {
+        str_50: String(50),
+        str_100: String(100),
+        str_512: String(512),
+    }
