@@ -38,7 +38,6 @@ class Employee(Base):
     telegram_id: Mapped[str_50]  # идентификатор телеграмма сотрудника
     name: Mapped[str_50] = mapped_column(nullable=True)  # имя сотрудника
 
-
 class Process(Base):
     __tablename__ = 'processes'
 
