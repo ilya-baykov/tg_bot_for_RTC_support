@@ -16,9 +16,8 @@ send_task_router = Router()
 db = Database()
 
 
-async def send_task_notifications(bot: Bot):
+async def send_task_notifications(bot: Bot, tasks):
     try:
-        tasks = await db.select_future_tasks()
         for task in tasks:
             employee = await db.get_employee_by_telegram_username(task.employee_telegram)
             if employee:
@@ -39,10 +38,11 @@ async def send_task_notifications(bot: Bot):
         logger.error(f"Ошибка при получении задач из базы данных: {e}")
 
 
-async def start_send_task_notifications(bot: Bot, dp: Dispatcher):
+async def start_send_task_notifications(bot: Bot, dp: Dispatcher, tasks):
     while True:
-        await send_task_notifications(bot)
+        await send_task_notifications(bot, tasks)
         await asyncio.sleep(3600)  # Отправлять уведомления каждый час
 
-def register_send_task_handlers(dp: Dispatcher, bot: Bot):
-    asyncio.create_task(start_send_task_notifications(bot, dp))
+
+def register_send_task_handlers(dp: Dispatcher, bot: Bot, tasks):
+    asyncio.create_task(start_send_task_notifications(bot, dp, tasks))

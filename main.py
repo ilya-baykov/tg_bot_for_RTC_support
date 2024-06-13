@@ -27,12 +27,13 @@ dp.startup.register(start_bot)
 
 async def start():
     try:
-        # db = Database()
+        db = Database()
         # await db.create_db()
+        tasks = await db.select_future_tasks()  # Получаем задачи один раз при запуске
 
         # Регистрация обработчиков
         register_start_handlers(dp)
-        register_send_task_handlers(dp, bot)
+        register_send_task_handlers(dp, bot, tasks)
 
         await dp.start_polling(bot, skip_updates=True)
     finally:
