@@ -9,6 +9,7 @@ from aiogram.enums.parse_mode import ParseMode
 from database.Database import Database
 from handlers.start.start import register_start_handlers
 from handlers.send_task_notifications.send_task_notifications import register_send_task_handlers
+from handlers.user_answer.user_answer import register_user_response
 
 # Установите политику цикла событий для Windows
 if platform.system() == 'Windows':
@@ -16,13 +17,6 @@ if platform.system() == 'Windows':
 
 bot = Bot(token=environ.get('TOKEN', 'define me!'))
 dp = Dispatcher()
-
-
-# async def start_bot(bot: Bot):
-#     await bot.send_message(chat_id="793353522", text="Бот запушен :)")
-#
-#
-# dp.startup.register(start_bot)
 
 
 async def start():
@@ -34,6 +28,7 @@ async def start():
         # Регистрация обработчиков
         register_start_handlers(dp)
         register_send_task_handlers(dp, bot, tasks)
+        register_user_response(dp)
 
         await dp.start_polling(bot, skip_updates=True)
     finally:

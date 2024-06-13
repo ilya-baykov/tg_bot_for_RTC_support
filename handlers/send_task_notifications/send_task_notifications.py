@@ -43,7 +43,7 @@ async def send_task_notifications(bot: Bot, tasks):
 async def start_send_task_notifications(bot: Bot, dp: Dispatcher, tasks):
     while True:
         await send_task_notifications(bot, tasks)
-        await asyncio.sleep(3600)  # Отправлять уведомления каждый час
+        await asyncio.sleep(100)  # Отправлять уведомления каждый час
 
 
 def register_send_task_handlers(dp: Dispatcher, bot: Bot, tasks):
