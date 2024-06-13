@@ -1,11 +1,11 @@
 from aiogram import Dispatcher, Bot, Router, F
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message, CallbackQuery
-from aiogram.fsm.context import FSMContext
 from handlers.send_task_notifications.keyboard import keyboard
+from aiogram.fsm.context import FSMContext
 
 from database.Database import Database
-
+from handlers.user_answer.states import WaitUserResponse
 import asyncio
 import logging
 
@@ -40,11 +40,18 @@ async def send_task_notifications(bot: Bot, tasks):
         logger.error(f"Ошибка при получении задач из базы данных: {e}")
 
 
+# @send_task_router.message(Command(WaitUserResponse.task_send))
+# async def send_task(message: Message, state: FSMContext):
+#     await state.set_state(WaitUserResponse.response)
+
+
 async def start_send_task_notifications(bot: Bot, dp: Dispatcher, tasks):
     while True:
         await send_task_notifications(bot, tasks)
-        await asyncio.sleep(100)  # Отправлять уведомления каждый час
+        await asyncio.sleep(3600)
 
 
 def register_send_task_handlers(dp: Dispatcher, bot: Bot, tasks):
     asyncio.create_task(start_send_task_notifications(bot, dp, tasks))
+
+# Работа с FSMContext. !!!!
