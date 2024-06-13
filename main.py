@@ -8,6 +8,7 @@ from aiogram.enums.parse_mode import ParseMode
 
 from database.Database import Database
 from handlers.start.start import register_start_handlers
+from handlers.send_task_notifications.send_task_notifications import register_send_task_handlers
 
 # Установите политику цикла событий для Windows
 if platform.system() == 'Windows':
@@ -26,11 +27,12 @@ dp.startup.register(start_bot)
 
 async def start():
     try:
-        db = Database()
+        # db = Database()
         # await db.create_db()
-        await db.select_future_tasks()
+
         # Регистрация обработчиков
         register_start_handlers(dp)
+        register_send_task_handlers(dp, bot)
 
         await dp.start_polling(bot, skip_updates=True)
     finally:
