@@ -13,7 +13,7 @@ class Settings(BaseSettings):
         # DSN: f"postgresql+psycopg://postgres:postgres@localhost:5432/telegram-db"
         return f"postgresql+psycopg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
-    model_config = SettingsConfigDict(env_file="C:/Users/ilyab/PycharmProjects/Tg_bot_01/Tg_Bot/bot/database/.env")
+    model_config = SettingsConfigDict(env_file="database\.env")
 
 
 settings = Settings()

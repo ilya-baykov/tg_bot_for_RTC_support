@@ -1,9 +1,9 @@
 import datetime
 import enum
 from typing import Annotated
-from sqlalchemy import ForeignKey, func, Interval, DateTime
+from sqlalchemy import ForeignKey, func, DateTime
 from sqlalchemy.orm import Mapped, relationship, mapped_column
-from bot.database.database_main import Base, str_50, str_100, str_512
+from database.Base import Base, str_50, str_100, str_512
 
 
 def register_models() -> None:
@@ -35,8 +35,10 @@ class Employee(Base):
     __tablename__ = 'employees'
 
     employee_id: Mapped[intpk]  # уникальный идентификатор сотрудника
+    telegram_username: Mapped[str_50]  # username телеграмма сотрудника
     telegram_id: Mapped[str_50]  # идентификатор телеграмма сотрудника
     name: Mapped[str_50] = mapped_column(nullable=True)  # имя сотрудника
+
 
 class Process(Base):
     __tablename__ = 'processes'
