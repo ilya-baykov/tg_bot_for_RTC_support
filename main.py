@@ -18,11 +18,11 @@ bot = Bot(token=environ.get('TOKEN', 'define me!'))
 dp = Dispatcher()
 
 
-async def start_bot(bot: Bot):
-    await bot.send_message(chat_id="793353522", text="Бот запушен :)")
-
-
-dp.startup.register(start_bot)
+# async def start_bot(bot: Bot):
+#     await bot.send_message(chat_id="793353522", text="Бот запушен :)")
+#
+#
+# dp.startup.register(start_bot)
 
 
 async def start():

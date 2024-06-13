@@ -2,6 +2,7 @@ from aiogram import Dispatcher, Bot, Router, F
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
+from handlers.send_task_notifications.keyboard import keyboard
 
 from database.Database import Database
 
@@ -30,7 +31,8 @@ async def send_task_notifications(bot: Bot, tasks):
                         f"Запланировано на: {task.scheduled_time}"
                     )
                     try:
-                        await bot.send_message(chat_id=employee.telegram_id, text=message_text)
+                        await bot.send_message(chat_id=employee.telegram_id, text=message_text, reply_markup=keyboard)
+
                         logger.info(f"Отправлено уведомление о задаче для сотрудника {employee.name}")
                     except Exception as e:
                         logger.error(f"Ошибка при отправке уведомления для сотрудника {employee.name}: {e}")
