@@ -3,12 +3,11 @@ from os import environ
 from aiogram import Dispatcher, Bot, F
 import asyncio
 import platform
-from aiogram.client.bot import DefaultBotProperties
-from aiogram.enums.parse_mode import ParseMode
 
 from database.Database import Database
 from handlers.send_task_notifications.TaskManager import TaskManager
 from handlers.start.start import register_start_handlers
+from handlers.send_task_notifications.send_task_notifications import add_jobs
 # from handlers.send_task_notifications.send_task_notifications import register_send_task_handlers
 from handlers.user_answer.user_answer import register_user_response
 
@@ -23,6 +22,11 @@ dp = Dispatcher()
 async def start():
     try:
         db = Database()
+        tasks = await db.select_future_tasks()
+        await db.create_processes(tasks)
+        processes = await db.get_all_processes()
+
+        await add_jobs(bot, processes)
         # await db.create_db()
         # tasks = await db.select_future_tasks()  # Получаем задачи один раз при запуске
 

@@ -1,7 +1,17 @@
 import asyncio
 from collections import defaultdict
-
+from aiogram import Router, F
+from aiogram.types import Message
 from handlers.send_task_notifications.keyboard import keyboard
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
+
+router = Router()
+
+
+class WaitUserResponse(StatesGroup):
+    task_send = State()
+    response = State()
 
 
 class TaskManager:
@@ -35,8 +45,8 @@ class TaskManager:
                 # Отправляем уведомление о задаче сотруднику
                 await self.send_task_notification(employee_id, task)
 
-                # # Ожидаем ответа от сотрудника
-                # response = await self.wait_for_response(employee_id)
+                # Ожидаем ответа от сотрудника
+                response = await self.wait_for_response(employee_id)
                 # # Обновляем статус задачи в базе данных
                 # await self.db.update_task_status(task.entry_id, response)
             except Exception as e:
@@ -58,9 +68,27 @@ class TaskManager:
             f"Запланировано на: {task.scheduled_time}"
         )
         # Отправляем сообщение сотруднику в Telegram
-        await self.bot.send_message(chat_id=employee.telegram_id, text=message_text, reply_markup=keyboard)
+        await self.bot.send_message(chat_id=employee.telegram_id, text="Новая задача")
+        await self.set_waiting_response_state(employee.telegram_id, task)
 
-    async def wait_for_response(self, employee_id):
-        # Логика ожидания ответа от сотрудника
-        # Может быть реализация с использованием async или событий
-        pass
+        # await self.bot.send_message(chat_id=employee.telegram_id, text=message_text, reply_markup=keyboard)
+
+    async def set_waiting_response_state(self, telegram_id, task):
+        print("Мы  в  set_waiting_response_state")
+        state = FSMContext(storage=self.bot.storage, chat=telegram_id, user=telegram_id)
+        print(state)
+        await state.set_state(WaitUserResponse.task_send)
+        await state.update_data(task_id=task.entry_id)
+
+# @router.message(F.text == "Новая задача")
+# async def catch_new_task(message: Message, state: FSMContext):
+#     print("Зашли в catch_new_task ")
+#     await state.set_state(WaitUserResponse.task_send)
+#     await message.answer("Поймали новую задачу")
+#
+#
+# @router.message(WaitUserResponse.task_send)
+# async def wait_response(message: Message, state: FSMContext):
+#     print("Зашли в wait_response ")
+#     await state.set_state(WaitUserResponse.response)
+#     await message.answer("Задача выполнена")

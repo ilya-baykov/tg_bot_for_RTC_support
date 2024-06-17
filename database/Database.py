@@ -1,10 +1,11 @@
+import logging
+
 from sqlalchemy import select, asc
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import joinedload
 
 from database.config import settings
 from database.models import *
-
-import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -76,17 +77,9 @@ class Database:
                 ))
                 await request.commit()
 
-    async def select_future_tasks(self):
-        logger.info("Получение будущих задач")
+    async def create_processes(self, tasks):
+        logger.info("Создание новых процессов")
         async with self.Session() as request:
-            query = (
-                select(TaskEntry)
-                .filter(TaskEntry.scheduled_time > datetime.datetime.now())
-                .order_by(asc(TaskEntry.scheduled_time))
-            )
-            result = await request.execute(query)
-            tasks = result.scalars().all()
-
             for task in tasks:
                 print(f"Task ID: {task.entry_id}, Process Name: {task.process_name}, "
                       f"Scheduled Time: {task.scheduled_time}, Employee Telegram: {task.employee_telegram}, "
@@ -106,6 +99,17 @@ class Database:
                     )
                 else:
                     logger.warning(f"Сотрудник с telegram_username '{task.employee_telegram}' не найден.")
+
+    async def select_future_tasks(self):
+        logger.info("Получение будущих задач")
+        async with self.Session() as request:
+            query = (
+                select(TaskEntry)
+                .filter(TaskEntry.scheduled_time > datetime.datetime.now())
+                .order_by(asc(TaskEntry.scheduled_time))
+            )
+            result = await request.execute(query)
+            tasks = result.scalars().all()
             return tasks
 
     async def get_employee_by_telegram_username(self, telegram_username):
@@ -119,3 +123,10 @@ class Database:
             query = select(Process).filter_by(process_name=process_name)
             result = await request.execute(query)
             return result.scalar_one_or_none()
+
+    async def get_all_processes(self):
+        async with self.Session() as request:
+            query = select(Process).options(joinedload(Process.employee)).order_by(asc(Process.scheduled_time))
+            result = await request.execute(query)
+            processes = result.scalars().all()
+            return processes

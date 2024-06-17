@@ -12,6 +12,7 @@ db = Database()
 
 @start_router.message(CommandStart())
 async def register_user(message: Message):
+    print(message)
     await db.add_employees(telegram_id=message.from_user.id, telegram_username=message.from_user.username,
                            fullname=message.from_user.full_name)
     await message.answer(
