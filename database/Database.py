@@ -99,7 +99,7 @@ class EmployeesDB(Databases):
 class ProcessDB(Databases):
     async def create_new_proces(self, process_name, action_description, employee_id, scheduled_time):
         async with self.db.Session() as request:
-            existing_process = self.get_proces(process_name, action_description, employee_id, scheduled_time)
+            existing_process = await self.get_proces(process_name, action_description, employee_id, scheduled_time)
 
             if existing_process:
                 logger.info(f"Процесс '{process_name}' уже существует и не будет добавлен.")

@@ -1,34 +1,28 @@
 from aiogram import Dispatcher, Bot, Router, F
-from database.Database import Database
+from database.Database import DataBase
 import logging
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-import datetime
+from handlers.send_task_notifications.keyboard import keyboard
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 send_task_router = Router()
 
-db = Database()
+db = DataBase()
 
 scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
 
 
-async def send_message_current_time(bot: Bot, user_id: int, text="Привет, это провекра отправки сообщения"):
-    await bot.send_message(user_id, text)
+async def send_message_current_time(bot: Bot, user_id: int, text: str, keyboard: keyboard):
+    await bot.send_message(chat_id=user_id, text=text, reply_markup=keyboard)
 
-
-#
-# scheduler.add_job(send_message_current_time, trigger='date',
-#                   run_date=datetime.datetime.now() + datetime.timedelta(seconds=10), kwargs={'bot': bot})
 
 async def add_jobs(bot: Bot, processes):
-    for process in processes:
-        print(process.employee.telegram_id)
-        print(process.scheduled_time)
-        print(process.action_description)
-        scheduler.add_job(send_message_current_time, trigger='date',
-                          run_date=process.scheduled_time,
-                          kwargs={'bot': bot, "user_id": process.employee.telegram_id,
-                                  "text": process.action_description})
-    scheduler.start()
+    if processes:
+        for process in processes:
+            scheduler.add_job(send_message_current_time, trigger='date',
+                              run_date=process.scheduled_time,
+                              kwargs={'bot': bot, "user_id": process.employee.telegram_id,
+                                      "text": process.action_description, "keyboard": keyboard})
+        scheduler.start()

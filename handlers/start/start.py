@@ -1,14 +1,12 @@
 from aiogram import Bot, Router, F
 from aiogram.filters import CommandStart
 from aiogram.types import Message
-from aiogram.fsm.context import FSMContext
-
-from main import db
+from database.Database import DataBase
 from database.Database import EmployeesDB
 
 start_router = Router()
 
-employees = EmployeesDB(db)
+employees = EmployeesDB(DataBase())
 
 
 @start_router.message(CommandStart())

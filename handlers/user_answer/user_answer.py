@@ -1,12 +1,7 @@
-from aiogram import Dispatcher, Bot, Router, F
-from aiogram.filters import Command, CommandStart
-from aiogram.types import Message, CallbackQuery
-from aiogram.fsm.context import FSMContext
-from handlers.send_task_notifications.keyboard import keyboard
+from aiogram import Router, F
+from aiogram.types import Message
 
 user_answer = Router()
-
-print("Ты тут")
 
 
 @user_answer.message(F.text == "Выполнено")
