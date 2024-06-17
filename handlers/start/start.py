@@ -20,14 +20,13 @@ class UserRegistration(StatesGroup):
 
 @start_router.message(CommandStart())
 async def start_register_user(message: Message, state: FSMContext):
-    await message.answer(f"Здравствуй,{message.from_user.full_name}.\nВведите ваш номер телефона для регистрации.")
-    await state.set_state(UserRegistration.input_phone)
-    # await employees.create_new_employer(telegram_id=message.from_user.id, telegram_username=message.from_user.username,
-    #                                     fullname=message.from_user.full_name)
-    #
-    # await message.answer(
-    #     f"{message.from_user.full_name}, Вы успешно зарегистрировались ! \nВаш ID в базе данных: {message.from_user.id}"
-    #     f"\nВаш никнейм в базе данных: {message.from_user.username}")
+    employee = await employees.get_employee_by_telegram_id(message.from_user.id)
+    if employee:
+        await message.answer(
+            f"Здравствуй,{employee.name}.Бот запущен.\nВы уже были успешно зарегистрированы")
+    else:
+        await message.answer(f"Здравствуй,{message.from_user.username}.\nВведите ваш номер телефона для регистрации.")
+        await state.set_state(UserRegistration.input_phone)
 
 
 @start_router.message(UserRegistration.input_phone)
