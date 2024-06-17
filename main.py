@@ -14,6 +14,7 @@ if platform.system() == 'Windows':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 bot = Bot(token=environ.get('TOKEN', 'define me!'))
+print(bot.id)
 dp = Dispatcher()
 db = DataBase()
 inputdb, processesdb = InputDB(db), ProcessDB(db)

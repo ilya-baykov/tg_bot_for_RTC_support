@@ -3,7 +3,7 @@ import enum
 from typing import Annotated
 from sqlalchemy import ForeignKey, func, DateTime
 from sqlalchemy.orm import Mapped, relationship, mapped_column
-from database.Base import Base, str_50, str_100, str_512
+from database.Base import Base, str_20, str_50, str_100, str_512
 
 
 def register_models() -> None:
@@ -73,3 +73,12 @@ class Notification(Base):
 
     process = relationship('Process')
     employee = relationship('Employee')
+
+
+class EmployeePhones(Base):
+    __tablename__ = 'employee_phones'
+
+    employee_phones_id: Mapped[intpk]  # Уникальный идентификатор
+
+    fullname: Mapped[str_100]
+    phone_number: Mapped[str_20] = mapped_column(nullable=True)

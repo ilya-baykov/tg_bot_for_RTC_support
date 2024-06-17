@@ -21,8 +21,11 @@ async def send_message_current_time(bot: Bot, user_id: int, text: str, keyboard:
 async def add_jobs(bot: Bot, processes):
     if processes:
         for process in processes:
+            text = f"Имя процесса: {process.process_name}\nОписание процесса: {process.action_description}"
             scheduler.add_job(send_message_current_time, trigger='date',
-                              run_date=process.scheduled_time,
+                              run_date=process.scheduled_time, name=f"{process.employee_id}-{process.process_name}",
                               kwargs={'bot': bot, "user_id": process.employee.telegram_id,
-                                      "text": process.action_description, "keyboard": keyboard})
+                                      "text": text, "keyboard": keyboard})
+
+        print(scheduler.get_jobs())
         scheduler.start()
