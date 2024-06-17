@@ -1,20 +1,21 @@
 from aiogram import Bot, Router, F
-from aiogram.filters import Command, CommandStart
-from aiogram.types import Message, CallbackQuery
+from aiogram.filters import CommandStart
+from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 
-from database.Database import Database
+from main import db
+from database.Database import EmployeesDB
 
 start_router = Router()
 
-db = Database()
+employees = EmployeesDB(db)
 
 
 @start_router.message(CommandStart())
 async def register_user(message: Message):
-    print(message)
-    await db.add_employees(telegram_id=message.from_user.id, telegram_username=message.from_user.username,
-                           fullname=message.from_user.full_name)
+    await employees.create_new_employer(telegram_id=message.from_user.id, telegram_username=message.from_user.username,
+                                        fullname=message.from_user.full_name)
+
     await message.answer(
         f"{message.from_user.full_name}, Вы успешно зарегистрировались ! \nВаш ID в базе данных: {message.from_user.id}"
         f"\nВаш никнейм в базе данных: {message.from_user.username}")
