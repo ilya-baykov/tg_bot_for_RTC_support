@@ -63,7 +63,7 @@ class EmployeesDB(Databases):
         """
         async with self.db.Session() as request:
             # Получаем сотрудника ( по его id ).
-            existing_employee = self.get_employee_by_telegram_id(telegram_id=str(telegram_id))
+            existing_employee = await self.get_employee_by_telegram_id(telegram_id=str(telegram_id))
 
             # Проверяем наличие данного сотрудника в таблице employees
             if existing_employee:
@@ -162,3 +162,12 @@ class ProcessDB(Databases):
 
 class NotificationDB(Databases):
     pass
+
+
+class EmployeePhonesDB(Databases):
+
+    async def get_employee_by_phone(self, phone_number):
+        async with self.db.Session() as request:
+            query = select(EmployeePhones).filter_by(phone_number=phone_number)
+            result = await request.execute(query)
+            return result.scalar_one_or_none()

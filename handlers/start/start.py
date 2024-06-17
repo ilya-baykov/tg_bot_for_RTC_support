@@ -1,22 +1,47 @@
 from aiogram import Bot, Router, F
 from aiogram.filters import CommandStart
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message
 from database.Database import DataBase
 from database.Database import EmployeesDB
+from database.Database import EmployeePhonesDB
 
 start_router = Router()
 
-employees = EmployeesDB(DataBase())
+db = DataBase()
+employees = EmployeesDB(db)
+employees_phones = EmployeePhonesDB(db)
+
+
+class UserRegistration(StatesGroup):
+    input_phone = State()
 
 
 @start_router.message(CommandStart())
-async def register_user(message: Message):
-    await employees.create_new_employer(telegram_id=message.from_user.id, telegram_username=message.from_user.username,
-                                        fullname=message.from_user.full_name)
+async def start_register_user(message: Message, state: FSMContext):
+    await message.answer(f"Здравствуй,{message.from_user.full_name}.\nВведите ваш номер телефона для регистрации.")
+    await state.set_state(UserRegistration.input_phone)
+    # await employees.create_new_employer(telegram_id=message.from_user.id, telegram_username=message.from_user.username,
+    #                                     fullname=message.from_user.full_name)
+    #
+    # await message.answer(
+    #     f"{message.from_user.full_name}, Вы успешно зарегистрировались ! \nВаш ID в базе данных: {message.from_user.id}"
+    #     f"\nВаш никнейм в базе данных: {message.from_user.username}")
 
-    await message.answer(
-        f"{message.from_user.full_name}, Вы успешно зарегистрировались ! \nВаш ID в базе данных: {message.from_user.id}"
-        f"\nВаш никнейм в базе данных: {message.from_user.username}")
+
+@start_router.message(UserRegistration.input_phone)
+async def input_phone_number(message: Message, state: FSMContext):
+    employee = await employees_phones.get_employee_by_phone(phone_number=message.text)
+    if employee:
+        await employees.create_new_employer(telegram_id=message.from_user.id,
+                                            telegram_username=message.from_user.username,
+                                            fullname=employee.fullname)
+        await message.answer(f"{employee.fullname}, вы успешно зарегистрировались в этом чат-боте.")
+        await state.clear()
+    else:
+        await message.answer(
+            f"{message.text} - этот номер не найден в базе. Попробуйте ввести только 11 цифр без лищних символов ")
 
 
 def register_start_handlers(dp):
