@@ -32,7 +32,7 @@ async def start():
         # Регистрация обработчиков
         register_start_handlers(dp)
         register_user_response(dp)
-
+        
         await dp.start_polling(bot, skip_updates=True)
     finally:
         await bot.session.close()
