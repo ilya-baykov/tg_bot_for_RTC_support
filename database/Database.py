@@ -91,7 +91,7 @@ class EmployeesDB(Databases):
 
     async def get_employee_by_telegram_id(self, telegram_id):
         async with self.db.Session() as request:
-            query = select(Employee).filter_by(telegram_id=str(telegram_id))
+            query = select(Employee).filter_by(telegram_id=str(telegram_id) )
             result = await request.execute(query)
             return result.scalar_one_or_none()
 

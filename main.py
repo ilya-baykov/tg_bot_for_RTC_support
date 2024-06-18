@@ -14,7 +14,6 @@ if platform.system() == 'Windows':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 bot = Bot(token=environ.get('TOKEN', 'define me!'))
-print(bot.id)
 dp = Dispatcher()
 db = DataBase()
 inputdb, processesdb = InputDB(db), ProcessDB(db)
@@ -32,7 +31,7 @@ async def start():
         # Регистрация обработчиков
         register_start_handlers(dp)
         register_user_response(dp)
-        
+
         await dp.start_polling(bot, skip_updates=True)
     finally:
         await bot.session.close()

@@ -4,17 +4,17 @@ from aiogram.types import Message
 
 from handlers.user_answer.states import UserResponse
 from database.Database import NotificationDB
-from .MyFilters import MyFilter
+# from .MyFilters import MyFilter
 
 user_answer = Router()
 
 
-@user_answer.message(MyFilter())
-async def test_my_filter(message: Message, state: FSMContext):
-    print("Да,он сработал")
-    await message.answer("ДА!")
-    await state.set_state(UserResponse.response)
-    # await message.answer("Да, он сработал")
+# @user_answer.message(MyFilter())
+# async def test_my_filter(message: Message, state: FSMContext):
+#     print("Да,он сработал")
+#     await message.answer("ДА!")
+#     await state.set_state(UserResponse.response)
+#     # await message.answer("Да, он сработал")
 
 
 @user_answer.message(UserResponse.response)

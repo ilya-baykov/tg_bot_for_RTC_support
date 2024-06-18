@@ -9,7 +9,6 @@ from database.Database import EmployeePhonesDB
 from handlers.start.keyboard import keyboard
 from handlers.start.filter import IsTrueContact
 
-# from handlers.start.check_phone import check_phone
 
 start_router = Router()
 
