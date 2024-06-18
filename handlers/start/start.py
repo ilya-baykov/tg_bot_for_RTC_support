@@ -7,7 +7,9 @@ from database.Database import DataBase
 from database.Database import EmployeesDB
 from database.Database import EmployeePhonesDB
 from handlers.start.keyboard import keyboard
-from handlers.start.iscontact import IsTrueContact
+from handlers.start.filter import IsTrueContact
+
+# from handlers.start.check_phone import check_phone
 
 start_router = Router()
 
@@ -35,8 +37,6 @@ async def start_register_user(message: Message, state: FSMContext):
 @start_router.message(UserRegistration.input_phone, F.contact, IsTrueContact())
 async def take_true_contact(message: Message, state: FSMContext):
     phone = message.contact.phone_number.replace("+7", "8")
-    print(message.contact.phone_number)
-    print(phone)
     employee = await employees_phones.get_employee_by_phone(phone_number=phone)
     if employee:
         await employees.create_new_employer(telegram_id=message.from_user.id,
@@ -46,7 +46,7 @@ async def take_true_contact(message: Message, state: FSMContext):
         await state.clear()
     else:
         await message.answer(
-            f"{message.text} - этот номер не найден в базе. Попробуйте ввести только 11 цифр без лищних символов ")
+            f"{message.contact.phone_number} - этот номер не найден в базе. ")
 
 
 @start_router.message(UserRegistration.input_phone, F.contact)
