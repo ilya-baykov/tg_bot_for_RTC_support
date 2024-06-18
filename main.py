@@ -19,18 +19,31 @@ db = DataBase()
 inputdb, processesdb = InputDB(db), ProcessDB(db)
 
 
+# async def special_function():
+#     while True:
+#         # Ваш код, который должен выполняться постоянно
+#         print("Специальная функция выполняется...")
+#         await asyncio.sleep(10)  # Пример: выполняется каждые 10 секунд
+
+
 async def start():
     try:
-        # await db.create_db()
+        await db.create_db()
         tasks = await inputdb.get_tasks()
+        print(tasks)
         await processesdb.create_new_processes(tasks, db)
         processes = await processesdb.get_all_processes()
-
-        await add_jobs(bot, processes)
+        print(processes)
+        # print(processes)
+        # await add_jobs(bot, processes)
 
         # Регистрация обработчиков
         register_start_handlers(dp)
         register_user_response(dp)
+
+        # Запуск специальной функции параллельно
+        # asyncio.create_task(special_function())
+        # special_task = asyncio.create_task(special_function())
 
         await dp.start_polling(bot, skip_updates=True)
     finally:

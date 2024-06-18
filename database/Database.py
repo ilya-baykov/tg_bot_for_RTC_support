@@ -91,7 +91,7 @@ class EmployeesDB(Databases):
 
     async def get_employee_by_telegram_id(self, telegram_id):
         async with self.db.Session() as request:
-            query = select(Employee).filter_by(telegram_id=str(telegram_id) )
+            query = select(Employee).filter_by(telegram_id=str(telegram_id))
             result = await request.execute(query)
             return result.scalar_one_or_none()
 
@@ -109,7 +109,8 @@ class ProcessDB(Databases):
                     process_name=process_name,
                     action_description=action_description,
                     employee_id=employee_id,
-                    scheduled_time=scheduled_time
+                    scheduled_time=scheduled_time,
+                    status="Ожидает отправки"
                 ))
                 await request.commit()
 
@@ -128,7 +129,7 @@ class ProcessDB(Databases):
                     process_name=task.process_name,
                     action_description=task.action_description,
                     employee_id=employee.employee_id,
-                    scheduled_time=task.scheduled_time
+                    scheduled_time=task.scheduled_time,
                 )
             else:
                 logger.warning(f"Сотрудник с telegram_username '{task.employee_telegram}' не найден.")

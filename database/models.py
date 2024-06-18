@@ -5,17 +5,23 @@ from sqlalchemy import ForeignKey, func, DateTime
 from sqlalchemy.orm import Mapped, relationship, mapped_column
 from database.Base import Base, str_20, str_50, str_100, str_512
 
-
-def register_models() -> None:
-    pass
-
-
 intpk = Annotated[int, mapped_column(primary_key=True)]
 
 
-class Status(enum.Enum):
+class NotificationProcessStatus(enum.Enum):
     ok = "ОК"
     not_ok = "НЕ ОК"
+
+
+class EmployeeStatus(enum.Enum):
+    available = "Available"
+    busy = "Busy"
+
+
+class ProcessStatus(enum.Enum):
+    waiting_to_sent = "waiting_to_sent"
+    sent = "sent"
+    completed = "completed"
 
 
 # Модели таблиц
@@ -38,6 +44,7 @@ class Employee(Base):
     telegram_username: Mapped[str_50]  # username телеграмма сотрудника
     telegram_id: Mapped[str_50]  # идентификатор телеграмма сотрудника
     name: Mapped[str_50] = mapped_column(nullable=True)  # имя сотрудника
+    status: Mapped[EmployeeStatus] = mapped_column(default=EmployeeStatus.available)
 
 
 class Process(Base):
@@ -51,6 +58,8 @@ class Process(Base):
                                              nullable=False)  # идентификатор сотрудника, ответственного за процесc
 
     scheduled_time: Mapped[datetime.datetime]  # время, когда нужно отправить сообщение сотруднику
+
+    status: Mapped[str_50]
 
     employee = relationship('Employee')
 
@@ -67,7 +76,7 @@ class Notification(Base):
 
     sent_time: Mapped[datetime.datetime] = mapped_column(DateTime, default=func.now())  # время отправки уведомления
     response_time: Mapped[datetime.datetime]  # время ответа
-    response_status: Mapped[Status]  # статус ответа
+    response_status: Mapped[NotificationProcessStatus]  # статус ответа
     comment: Mapped[str_512] = mapped_column(nullable=True)  # комментарий сотрудника
     response_duration: Mapped[datetime.datetime]  # время, потраченное на ответ
 
