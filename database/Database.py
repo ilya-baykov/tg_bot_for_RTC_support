@@ -141,7 +141,7 @@ class ProcessDB(Databases):
 
             process.scheduled_time = new_scheduled_time
 
-            await  request.commit()
+            await request.commit()
 
     async def create_new_processes_2(self, tasks: List, db: DataBase = DataBase()):
         pass
@@ -223,7 +223,6 @@ class ProcessDB(Databases):
                 status=ProcessStatus.waiting_to_be_sent).order_by(asc(Process.scheduled_time))
             result = await request.execute(query)
             processes = result.scalars().all()
-            print(f"Задачи ожидающие отправку: {processes}")
             return processes
 
     async def get_all_sent_processes(self):
@@ -258,7 +257,6 @@ class ProcessDB(Databases):
                 .order_by(asc(Process.scheduled_time))
             )
             result = await session.execute(query)
-            print(f"Задания в очереди на добавление:{result}")
             return result.scalars().all()
 
     async def get_all_processes_by_employee_id(self, employee_id):

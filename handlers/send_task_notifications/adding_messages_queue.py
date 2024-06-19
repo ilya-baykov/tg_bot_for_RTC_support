@@ -8,6 +8,7 @@ import logging
 from database.Database import DataBase, ProcessDB, EmployeesDB, ProcessStatus, EmployeeStatus
 
 from global_variables import bot
+from handlers.sheduler import scheduler
 
 db = DataBase()
 processDB = ProcessDB(db)
@@ -16,13 +17,13 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 send_task_router = Router()
-scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
 
 
 def start_scheduler():
     if not scheduler.running:
         try:
             scheduler.start()
+            print(f"Запускаем работу шедулера {scheduler}")
         except Exception as e:
             logger.warning("Ошибка при запуске scheduler .")
 
@@ -30,6 +31,7 @@ def start_scheduler():
 async def getting_employees_current_task():
     all_waiting_processes = await processDB.get_all_waiting_to_be_sent_processes()
     for process in all_waiting_processes:
+        print(f"Процесс: {process.process_name} был добавлен в планировшик")
         await add_jobs(bot, process)
 
 
@@ -45,9 +47,12 @@ async def sent_message(bot: Bot, process):
 
 async def add_jobs(bot, process):
     current_time = datetime.datetime.now()
-    if process.scheduled_time > current_time:
-        await processDB.change_scheduled_time(process, current_time + datetime.timedelta(seconds=5))
+    scheduled_time = process.scheduled_time
 
-    scheduler.add_job(sent_message, trigger='date', run_date=process.scheduled_time,
+    if current_time > scheduled_time:
+        scheduled_time = current_time + datetime.timedelta(seconds=5)
+        await processDB.change_scheduled_time(process, scheduled_time)
+
+    scheduler.add_job(sent_message, trigger='date', run_date=scheduled_time,
                       kwargs={"bot": bot, "process": process})
     start_scheduler()

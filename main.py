@@ -8,7 +8,7 @@ from database.Database import DataBase, InputDB, EmployeesDB, ProcessDB, Notific
 from handlers.start.start import register_start_handlers
 from handlers.user_answer.user_answer import register_user_response
 from handlers.send_task_notifications.adding_messages_queue import *
-
+from handlers.sheduler import scheduler
 from global_variables import bot
 
 # Установите политику цикла событий для Windows
@@ -30,6 +30,11 @@ inputdb, processesdb = InputDB(db), ProcessDB(db)
 
 async def start():
     try:
+        try:
+            print(f"Завершаем работу шедулера {scheduler}")
+            await scheduler.shutdown(wait=False)
+        except Exception:
+            print(f"шедулер не запушен {scheduler}")
         # await db.reset_database() # Очищает БД
         # await db.create_db() # Создает все модели в БД
 
@@ -46,7 +51,8 @@ async def start():
         # special_task = asyncio.create_task(special_function())
 
         await dp.start_polling(bot, skip_updates=True)
-    finally:
+    except Exception:
+
         await bot.session.close()
 
 
