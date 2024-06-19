@@ -34,8 +34,23 @@ async def sent_message(bot: Bot, process):
     text = f"Имя процесса: {process.process_name}\nОписание процесса:{process.action_description}"
     print(text)
     employee = process.employee
-    employee.status = EmployeeStatus.busy
-    await bot.send_message(chat_id=employee.telegram_id, text=text, reply_markup=keyboard)
+    # НУЖНО ДЕЛАТЬ ОБНОВЛЕНИЕ ЧЕРЕЗ БД
+    async with db.Session() as session:
+        async with session.begin():
+            # Получаем текущие объекты из сессии для отслеживания изменений
+            employee = await session.merge(employee)
+            process = await session.merge(process)
+
+            # Вносим изменения
+            employee.status = EmployeeStatus.busy
+            process.status = ProcessStatus.sent
+
+            # Копируем необходимые данные перед коммитом
+            telegram_id = employee.telegram_id
+
+            # Сохраняем изменения
+            await session.commit()
+    await bot.send_message(chat_id=telegram_id, text=text, reply_markup=keyboard)
 
 
 async def add_jobs(bot, process):
