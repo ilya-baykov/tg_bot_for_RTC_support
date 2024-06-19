@@ -23,8 +23,8 @@ async def user_response(message: Message, state: FSMContext):
         employee_id = employee.employee_id
         sent_processes = await processDB.get_all_sent_processes_by_employee_id(employee_id)
         print(len(sent_processes))
-        sent_process = sent_processes[0]  # Последний отправленный запрос
-        if sent_process:
+        if sent_processes:
+            sent_process = sent_processes[0]  # Последний отправленный запрос
             await notificationDB.create_new_notification(process_id=sent_process.process_id,
                                                          employee_id=employee_id,
                                                          sent_time=sent_process.scheduled_time,
@@ -34,8 +34,8 @@ async def user_response(message: Message, state: FSMContext):
             await processDB.change_status(process=sent_process, status=ProcessStatus.completed)
             await employeesDB.change_status(employee=employee, status=EmployeeStatus.available)
 
-            # Переводим следующий процесс сотрудника в ProcessStatus.waiting_to_be_sent
-            # getting_employees_current_task(bot)
+            # !!!Переводим следующий процесс сотрудника в ProcessStatus.waiting_to_be_sent
+            await getting_employees_current_task()
 
             await message.answer(f"Отлично, мы записали это в БД")
         else:

@@ -5,6 +5,8 @@ from handlers.send_task_notifications.keyboard import keyboard
 import logging
 from database.Database import DataBase, ProcessDB, EmployeesDB, ProcessStatus, EmployeeStatus
 
+from global_variables import bot
+
 db = DataBase()
 processDB = ProcessDB(db)
 employeesDB = EmployeesDB(db)
@@ -23,7 +25,7 @@ def start_scheduler():
             logger.warning("Ошибка при запуске scheduler .")
 
 
-async def getting_employees_current_task(bot):
+async def getting_employees_current_task():
     all_waiting_processes = await processDB.get_all_waiting_to_be_sent_processes()
     for process in all_waiting_processes:
         await add_jobs(bot, process)

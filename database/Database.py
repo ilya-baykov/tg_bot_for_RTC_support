@@ -247,7 +247,6 @@ class NotificationDB(Databases):
     async def create_new_notification(self, process_id, employee_id, sent_time, response_time, response_status,
                                       comment):
         async with self.db.Session() as request:
-            print(sent_time - response_time)
             request.add(Notification(
                 process_id=process_id,
                 employee_id=employee_id,
