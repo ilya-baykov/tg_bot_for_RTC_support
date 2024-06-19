@@ -6,7 +6,6 @@ import platform
 
 from database.Database import DataBase, InputDB, EmployeesDB, ProcessDB, NotificationDB
 from handlers.start.start import register_start_handlers
-from handlers.send_task_notifications.send_task_notifications import add_jobs
 from handlers.user_answer.user_answer import register_user_response
 
 # Установите политику цикла событий для Windows
@@ -28,7 +27,7 @@ inputdb, processesdb = InputDB(db), ProcessDB(db)
 
 async def start():
     try:
-        await db.create_db()
+        # await db.create_db()
         tasks = await inputdb.get_tasks()
         print(tasks)
         await processesdb.create_new_processes(tasks, db)

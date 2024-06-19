@@ -97,22 +97,34 @@ class EmployeesDB(Databases):
 
 
 class ProcessDB(Databases):
-    async def create_new_proces(self, process_name, action_description, employee_id, scheduled_time):
+
+    async def create_new_processes_2(self, tasks: List, db: DataBase = DataBase()):
+        pass
+
+    async def create_new_proces(self, process_name, action_description, employee, scheduled_time):
         async with self.db.Session() as request:
-            existing_process = await self.get_proces(process_name, action_description, employee_id, scheduled_time)
+            existing_process = await self.get_proces(process_name, action_description, employee, scheduled_time)
 
             if existing_process:
                 logger.info(f"Процесс '{process_name}' уже существует и не будет добавлен.")
+
+
+            # Если процесс не существует, добавляем его
             else:
-                # Если процесс не существует, добавляем его
-                request.add(Process(
+                # Должны получить все процессы по сотруднику
+                employee_tasks = await self.get_all_processes_by_employee_id(employee_id=employee.employee_id)
+                new_process = Process(
                     process_name=process_name,
                     action_description=action_description,
-                    employee_id=employee_id,
+                    employee_id=employee.employee_id,
                     scheduled_time=scheduled_time,
-                    status="Ожидает отправки"
-                ))
+                    status="Ожидает отправки" if len(employee_tasks) == 0 else "В очереди на добавление"
+                )
+
+                # Добавляем новый процесс в запрос
+                request.add(new_process)
                 await request.commit()
+                # await add_jobs(new_process, employee_id)
 
     async def create_new_processes(self, tasks: List, db: DataBase = DataBase()):
         logger.info("Создание новых процессов")
@@ -128,19 +140,19 @@ class ProcessDB(Databases):
                 await self.create_new_proces(
                     process_name=task.process_name,
                     action_description=task.action_description,
-                    employee_id=employee.employee_id,
+                    employee=employee,
                     scheduled_time=task.scheduled_time,
                 )
             else:
                 logger.warning(f"Сотрудник с telegram_username '{task.employee_telegram}' не найден.")
 
-    async def get_proces(self, process_name, action_description, employee_id, scheduled_time):
+    async def get_proces(self, process_name, action_description, employee, scheduled_time):
         async with self.db.Session() as request:
             # Проверяем, существует ли уже процесс с такими же данными
             existing_process_query = select(Process).filter_by(
                 process_name=process_name,
                 action_description=action_description,
-                employee_id=employee_id,
+                employee_id=employee.employee_id,
                 scheduled_time=scheduled_time
             )
             existing_process_result = await request.execute(existing_process_query)
@@ -160,6 +172,14 @@ class ProcessDB(Databases):
             processes = result.scalars().all()
             return processes
 
+    async def get_all_processes_by_employee_id(self, employee_id):
+        async with self.db.Session() as request:
+            query = select(Process).filter_by(employee_id=employee_id)
+            result = await request.execute(query)
+            answer = result.scalars().all()
+            print(employee_id, answer)
+            return answer
+
 
 class NotificationDB(Databases):
     pass
@@ -172,3 +192,11 @@ class EmployeePhonesDB(Databases):
             query = select(EmployeePhones).filter_by(phone_number=phone_number)
             result = await request.execute(query)
             return result.scalar_one_or_none()
+
+    async def get_all_employee_tasks(self, employee_id):
+        async with self.db.Session() as request:
+            query = select(Process).filter_by(employee_id=employee_id)
+            result = await request.execute(query)
+            answer = result.scalars().all()
+            print(employee_id, answer)
+            return answer
