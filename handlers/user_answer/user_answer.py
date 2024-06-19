@@ -3,11 +3,13 @@ import datetime
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
+
+from handlers.send_task_notifications.adding_messages_queue import getting_employees_current_task
 from handlers.user_answer.state import UserResponse
-from database.Database import NotificationDB, EmployeesDB, ProcessDB, DataBase, NotificationProcessStatus
+from database.Database import NotificationDB, EmployeesDB, ProcessDB, DataBase, NotificationProcessStatus, \
+    ProcessStatus, EmployeeStatus
 
 user_answer = Router()
-
 db = DataBase()
 employeesDB = EmployeesDB(db)
 processDB = ProcessDB(db)
@@ -29,14 +31,16 @@ async def user_response(message: Message, state: FSMContext):
                                                          response_time=datetime.datetime.now(),
                                                          response_status=NotificationProcessStatus.ok,
                                                          comment="Успешно")  # Фиксируем ответ в таблицу
-            # Переводим следующий процесс сотрудника в ожидании отправки
-            # Делаем статус сотрудника - свободен
-            pass
-        else:
-            await message.answer("Вам не было отправлено сообщений.")
+            await processDB.change_status(process=sent_process, status=ProcessStatus.completed)
+            await employeesDB.change_status(employee=employee, status=EmployeeStatus.available)
 
-        await message.answer(f"Отлично, мы записали это в БД")
-        # вызываем функцию getting_employees_current_task(bot)
+            # Переводим следующий процесс сотрудника в ProcessStatus.waiting_to_be_sent
+            # getting_employees_current_task(bot)
+
+            await message.answer(f"Отлично, мы записали это в БД")
+        else:
+            await message.answer("Вам не было отправлено сообщений")
+
     else:
         await message.answer(
             "Для вас нет доступа к этому функционалу. Попробуйте зарегистрироваться с помощью команды start")

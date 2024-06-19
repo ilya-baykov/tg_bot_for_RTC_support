@@ -59,6 +59,16 @@ class InputDB(Databases):
 
 
 class EmployeesDB(Databases):
+    async def change_status(self, employee, status):
+        async with self.db.Session() as request:
+            # Получаем текущие объекты из сессии для отслеживания изменений
+            employee = await request.merge(employee)
+
+            # Вносим изменения
+            employee.status = status
+
+            # Сохраняем изменения
+            await request.commit()
 
     async def create_new_employer(self, telegram_username: str, telegram_id: int, fullname: str) -> None:
         """
@@ -110,6 +120,16 @@ class EmployeesDB(Databases):
 
 
 class ProcessDB(Databases):
+    async def change_status(self, process, status):
+        async with self.db.Session() as request:
+            # Получаем текущие объекты из сессии для отслеживания изменений
+            process = await request.merge(process)
+
+            # Вносим изменения
+            process.status = status
+
+            # Сохраняем изменения
+            await request.commit()
 
     async def create_new_processes_2(self, tasks: List, db: DataBase = DataBase()):
         pass
