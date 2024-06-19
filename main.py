@@ -32,6 +32,7 @@ async def start():
     try:
         # await db.reset_database() # Очищает БД
         # await db.create_db() # Создает все модели в БД
+
         tasks = await inputdb.get_tasks()  # Получаем все текущие задачи
         await processesdb.create_new_processes(tasks, db)  # Создаем новые процессы
         await  getting_employees_current_task()

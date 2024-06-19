@@ -1,3 +1,5 @@
+import datetime
+
 from aiogram import Bot, Router
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -42,6 +44,10 @@ async def sent_message(bot: Bot, process):
 
 
 async def add_jobs(bot, process):
+    current_time = datetime.datetime.now()
+    if process.scheduled_time > current_time:
+        await processDB.change_scheduled_time(process, current_time + datetime.timedelta(seconds=5))
+
     scheduler.add_job(sent_message, trigger='date', run_date=process.scheduled_time,
                       kwargs={"bot": bot, "process": process})
     start_scheduler()
