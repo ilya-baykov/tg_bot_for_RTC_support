@@ -8,7 +8,7 @@ from database.Database import EmployeesDB
 from database.Database import EmployeePhonesDB
 from handlers.start.keyboard import keyboard
 from handlers.start.filter import IsTrueContact
-
+from handlers.user_answer.state import UserResponse
 
 start_router = Router()
 
@@ -27,6 +27,7 @@ async def start_register_user(message: Message, state: FSMContext):
     if employee:
         await message.answer(
             f"Здравствуй,{employee.name}.Бот запущен.\nВы уже были успешно зарегистрированы")
+        await state.set_state(UserResponse.wait_message)
     else:
         await message.answer(f"Здравствуй,{message.from_user.username}.\nВведите ваш номер телефона для регистрации.",
                              reply_markup=keyboard)

@@ -41,6 +41,7 @@ async def start():
         register_start_handlers(dp)
         register_user_response(dp)
 
+
         # Запуск специальной функции параллельно
         # asyncio.create_task(special_function())
         # special_task = asyncio.create_task(special_function())

@@ -2,6 +2,5 @@ from aiogram.fsm.state import State, StatesGroup
 
 
 class UserResponse(StatesGroup):
-    task_send = State()
-    response = State()
+    wait_message = State()
     comment = State()

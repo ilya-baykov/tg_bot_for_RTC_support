@@ -3,7 +3,6 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from handlers.send_task_notifications.keyboard import keyboard
 import logging
-from datetime import datetime, timedelta
 from database.Database import DataBase, ProcessDB, ProcessStatus, EmployeeStatus
 
 db = DataBase()
@@ -34,7 +33,7 @@ async def sent_message(bot: Bot, process):
     text = f"Имя процесса: {process.process_name}\nОписание процесса:{process.action_description}"
     print(text)
     employee = process.employee
-    # НУЖНО ДЕЛАТЬ ОБНОВЛЕНИЕ ЧЕРЕЗ БД
+
     async with db.Session() as session:
         async with session.begin():
             # Получаем текущие объекты из сессии для отслеживания изменений
@@ -50,6 +49,7 @@ async def sent_message(bot: Bot, process):
 
             # Сохраняем изменения
             await session.commit()
+
     await bot.send_message(chat_id=telegram_id, text=text, reply_markup=keyboard)
 
 
@@ -57,5 +57,3 @@ async def add_jobs(bot, process):
     scheduler.add_job(sent_message, trigger='date', run_date=process.scheduled_time,
                       kwargs={"bot": bot, "process": process})
     start_scheduler()
-
-# Проблема была в нескольких запусках sheduler

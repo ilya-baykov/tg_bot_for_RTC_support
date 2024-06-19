@@ -193,6 +193,27 @@ class ProcessDB(Databases):
             processes = result.scalars().all()
             return processes
 
+    async def get_all_sent_processes(self):
+        async with (self.db.Session() as request):
+            query = select(Process).options(joinedload(Process.employee)).filter_by(
+                status=ProcessStatus.sent).order_by(asc(Process.scheduled_time))
+            result = await request.execute(query)
+            processes = result.scalars().all()
+            return processes
+
+    async def get_all_sent_processes_by_employee_id(self, employee_id):
+        async with self.db.Session() as session:
+            query = (
+                select(Process)
+                .filter(
+                    Process.status == ProcessStatus.sent,
+                    Process.employee_id == employee_id
+                )
+                .order_by(asc(Process.scheduled_time))
+            )
+            result = await session.execute(query)
+            return result.scalars().all()
+
     async def get_all_processes_by_employee_id(self, employee_id):
         async with self.db.Session() as request:
             query = select(Process).filter_by(employee_id=employee_id)
@@ -203,7 +224,20 @@ class ProcessDB(Databases):
 
 
 class NotificationDB(Databases):
-    pass
+    async def create_new_notification(self, process_id, employee_id, sent_time, response_time, response_status,
+                                      comment):
+        async with self.db.Session() as request:
+            print(sent_time - response_time)
+            request.add(Notification(
+                process_id=process_id,
+                employee_id=employee_id,
+                sent_time=sent_time,
+                response_time=response_time,
+                response_status=response_status,
+                comment=comment,
+                response_duration=response_time - sent_time
+            ))
+            await request.commit()
 
 
 class EmployeePhonesDB(Databases):

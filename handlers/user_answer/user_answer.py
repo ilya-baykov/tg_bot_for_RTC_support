@@ -1,29 +1,48 @@
+import datetime
+
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
-
-from handlers.user_answer.states import UserResponse
-from database.Database import NotificationDB
-# from .MyFilters import MyFilter
+from handlers.user_answer.state import UserResponse
+from database.Database import NotificationDB, EmployeesDB, ProcessDB, DataBase, NotificationProcessStatus
 
 user_answer = Router()
 
-
-# @user_answer.message(MyFilter())
-# async def test_my_filter(message: Message, state: FSMContext):
-#     print("Да,он сработал")
-#     await message.answer("ДА!")
-#     await state.set_state(UserResponse.response)
-#     # await message.answer("Да, он сработал")
+db = DataBase()
+employeesDB = EmployeesDB(db)
+processDB = ProcessDB(db)
+notificationDB = NotificationDB(db)
 
 
-@user_answer.message(UserResponse.response)
+@user_answer.message(UserResponse.wait_message, F.text == "Выполнено")
 async def user_response(message: Message, state: FSMContext):
-    await state.set_state(UserResponse.task_send)
-    await message.answer(f"Отлично, мы записали это в БД")
+    employee = await employeesDB.get_employee_by_telegram_id(telegram_id=message.from_user.id)
+    if employee:
+        employee_id = employee.employee_id
+        sent_processes = await processDB.get_all_sent_processes_by_employee_id(employee_id)
+        print(len(sent_processes))
+        sent_process = sent_processes[0]  # Последний отправленный запрос
+        if sent_process:
+            await notificationDB.create_new_notification(process_id=sent_process.process_id,
+                                                         employee_id=employee_id,
+                                                         sent_time=sent_process.scheduled_time,
+                                                         response_time=datetime.datetime.now(),
+                                                         response_status=NotificationProcessStatus.ok,
+                                                         comment="Успешно")  # Фиксируем ответ в таблицу
+            # Переводим следующий процесс сотрудника в ожидании отправки
+            # Делаем статус сотрудника - свободен
+            pass
+        else:
+            await message.answer("Вам не было отправлено сообщений.")
+
+        await message.answer(f"Отлично, мы записали это в БД")
+        # вызываем функцию getting_employees_current_task(bot)
+    else:
+        await message.answer(
+            "Для вас нет доступа к этому функционалу. Попробуйте зарегистрироваться с помощью команды start")
 
 
-@user_answer.message(F.text == "Не выполнено")
+@user_answer.message(UserResponse.wait_message, F.text == "Не выполнено")
 async def user_response(message: Message, state: FSMContext):
     await state.set_state(UserResponse.comment)
     await message.answer("Напиши комментарий")
@@ -32,7 +51,7 @@ async def user_response(message: Message, state: FSMContext):
 @user_answer.message(UserResponse.comment)
 async def write_user_comment(message: Message, state: FSMContext):
     await message.answer("Спасибо за уточнение, мы записали это в БД")
-    await state.set_state(UserResponse.task_send)
+    await state.set_state(UserResponse.wait_message)
 
 
 def register_user_response(dp):

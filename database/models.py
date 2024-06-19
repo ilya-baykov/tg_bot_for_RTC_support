@@ -1,7 +1,7 @@
 import datetime
 import enum
 from typing import Annotated
-from sqlalchemy import ForeignKey, func, DateTime
+from sqlalchemy import ForeignKey, func, DateTime, Interval
 from sqlalchemy.orm import Mapped, relationship, mapped_column
 from database.Base import Base, str_20, str_50, str_100, str_512
 
@@ -88,7 +88,8 @@ class Notification(Base):
     response_time: Mapped[datetime.datetime]  # время ответа
     response_status: Mapped[NotificationProcessStatus]  # статус ответа
     comment: Mapped[str_512] = mapped_column(nullable=True)  # комментарий сотрудника
-    response_duration: Mapped[datetime.datetime]  # время, потраченное на ответ
+    # response_duration: Mapped[datetime.datetime]  # время, потраченное на ответ
+    response_duration: Mapped[datetime.timedelta] = mapped_column(Interval)
 
     process = relationship('Process')
     employee = relationship('Employee')
