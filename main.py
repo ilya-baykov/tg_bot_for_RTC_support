@@ -27,14 +27,13 @@ inputdb, processesdb = InputDB(db), ProcessDB(db)
 
 async def start():
     try:
+        # await db.reset_database()
         # await db.create_db()
         tasks = await inputdb.get_tasks()
         print(tasks)
         await processesdb.create_new_processes(tasks, db)
         processes = await processesdb.get_all_processes()
         print(processes)
-        # print(processes)
-        # await add_jobs(bot, processes)
 
         # Регистрация обработчиков
         register_start_handlers(dp)

@@ -8,20 +8,21 @@ from database.Base import Base, str_20, str_50, str_100, str_512
 intpk = Annotated[int, mapped_column(primary_key=True)]
 
 
+class ProcessStatus(enum.Enum):
+    queued_to_be_added = "В очереди на добавление"
+    waiting_to_be_sent = "Ожидает отправки"
+    sent = "Отправлено"
+    completed = "Выполнено"
+
+
 class NotificationProcessStatus(enum.Enum):
     ok = "ОК"
     not_ok = "НЕ ОК"
 
 
 class EmployeeStatus(enum.Enum):
-    available = "Available"
-    busy = "Busy"
-
-
-class ProcessStatus(enum.Enum):
-    waiting_to_sent = "waiting_to_sent"
-    sent = "sent"
-    completed = "completed"
+    available = "Свободен"
+    busy = "Занят"
 
 
 # Модели таблиц
@@ -47,6 +48,15 @@ class Employee(Base):
     status: Mapped[EmployeeStatus] = mapped_column(default=EmployeeStatus.available)
 
 
+class EmployeePhones(Base):
+    __tablename__ = 'employee_phones'
+
+    employee_phones_id: Mapped[intpk]  # Уникальный идентификатор
+
+    fullname: Mapped[str_100]
+    phone_number: Mapped[str_20] = mapped_column(nullable=True)
+
+
 class Process(Base):
     __tablename__ = 'processes'
 
@@ -54,12 +64,12 @@ class Process(Base):
     process_name: Mapped[str_100]  # имя процесса
     action_description: Mapped[str_512]  # описание действия
 
+    status: Mapped[ProcessStatus] = mapped_column(default=ProcessStatus.queued_to_be_added)
+
     employee_id: Mapped[int] = mapped_column(ForeignKey('employees.employee_id'),
                                              nullable=False)  # идентификатор сотрудника, ответственного за процесc
 
     scheduled_time: Mapped[datetime.datetime]  # время, когда нужно отправить сообщение сотруднику
-
-    status: Mapped[str_50]
 
     employee = relationship('Employee')
 
@@ -82,12 +92,3 @@ class Notification(Base):
 
     process = relationship('Process')
     employee = relationship('Employee')
-
-
-class EmployeePhones(Base):
-    __tablename__ = 'employee_phones'
-
-    employee_phones_id: Mapped[intpk]  # Уникальный идентификатор
-
-    fullname: Mapped[str_100]
-    phone_number: Mapped[str_20] = mapped_column(nullable=True)

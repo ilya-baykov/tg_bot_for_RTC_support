@@ -31,6 +31,13 @@ class DataBase:
             await connect.run_sync(Base.metadata.create_all)
         logger.info("Таблицы созданы")
 
+    async def reset_database(self):
+        logger.info("Очищаются все таблицы")
+
+        async with self.async_engine.begin() as connect:
+            await connect.run_sync(Base.metadata.drop_all)
+        logger.info("БД очищена")
+
 
 class Databases(ABC):
     def __init__(self, db: DataBase):
@@ -118,7 +125,8 @@ class ProcessDB(Databases):
                     action_description=action_description,
                     employee_id=employee.employee_id,
                     scheduled_time=scheduled_time,
-                    status="Ожидает отправки" if len(employee_tasks) == 0 else "В очереди на добавление"
+                    status=ProcessStatus.waiting_to_be_sent if len(
+                        employee_tasks) == 0 else ProcessStatus.queued_to_be_added
                 )
 
                 # Добавляем новый процесс в запрос
