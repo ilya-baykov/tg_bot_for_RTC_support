@@ -234,6 +234,19 @@ class ProcessDB(Databases):
             result = await session.execute(query)
             return result.scalars().all()
 
+    async def get_all_queued_to_be_added_by_employee_id(self, employee_id):
+        async with self.db.Session() as session:
+            query = (
+                select(Process)
+                .filter(
+                    Process.status == ProcessStatus.queued_to_be_added,
+                    Process.employee_id == employee_id
+                )
+                .order_by(asc(Process.scheduled_time))
+            )
+            result = await session.execute(query)
+            return result.scalars().all()
+
     async def get_all_processes_by_employee_id(self, employee_id):
         async with self.db.Session() as request:
             query = select(Process).filter_by(employee_id=employee_id)

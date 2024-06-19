@@ -33,9 +33,11 @@ async def user_response(message: Message, state: FSMContext):
                                                          comment="Успешно")  # Фиксируем ответ в таблицу
             await processDB.change_status(process=sent_process, status=ProcessStatus.completed)
             await employeesDB.change_status(employee=employee, status=EmployeeStatus.available)
-
-            # !!!Переводим следующий процесс сотрудника в ProcessStatus.waiting_to_be_sent
-            await getting_employees_current_task()
+            next_waiting_to_be_sent_process = await processDB.get_all_queued_to_be_added_by_employee_id(employee)
+            if next_waiting_to_be_sent_process:
+                first_process = next_waiting_to_be_sent_process[0]
+                await processDB.change_status(first_process, ProcessStatus.waiting_to_be_sent)
+                await getting_employees_current_task()
 
             await message.answer(f"Отлично, мы записали это в БД")
         else:
