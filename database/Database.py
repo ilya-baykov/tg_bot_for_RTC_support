@@ -102,6 +102,12 @@ class EmployeesDB(Databases):
             result = await request.execute(query)
             return result.scalar_one_or_none()
 
+    async def get_all_employees(self):
+        async with self.db.Session() as request:
+            query = select(Employee)
+            result = await request.execute(query)
+            return result.scalars().all()
+
 
 class ProcessDB(Databases):
 
@@ -132,7 +138,6 @@ class ProcessDB(Databases):
                 # Добавляем новый процесс в запрос
                 request.add(new_process)
                 await request.commit()
-                # await add_jobs(new_process, employee_id)
 
     async def create_new_processes(self, tasks: List, db: DataBase = DataBase()):
         logger.info("Создание новых процессов")
@@ -176,6 +181,14 @@ class ProcessDB(Databases):
     async def get_all_processes(self):
         async with self.db.Session() as request:
             query = select(Process).options(joinedload(Process.employee)).order_by(asc(Process.scheduled_time))
+            result = await request.execute(query)
+            processes = result.scalars().all()
+            return processes
+
+    async def get_all_waiting_to_be_sent_processes(self):
+        async with (self.db.Session() as request):
+            query = select(Process).options(joinedload(Process.employee)).filter_by(
+                status=ProcessStatus.waiting_to_be_sent).order_by(asc(Process.scheduled_time))
             result = await request.execute(query)
             processes = result.scalars().all()
             return processes

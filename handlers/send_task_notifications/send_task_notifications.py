@@ -1,21 +1,21 @@
-from aiogram import Dispatcher, Bot, Router, F
-from database.Database import DataBase
-import logging
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from handlers.send_task_notifications.keyboard import keyboard
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-send_task_router = Router()
-
-db = DataBase()
-
-scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
-
-
-async def send_message_current_time(bot: Bot, user_id: int, text: str, keyboard: keyboard):
-    await bot.send_message(chat_id=user_id, text=text, reply_markup=keyboard)
+# from aiogram import Dispatcher, Bot, Router, F
+# from database.Database import DataBase
+# import logging
+# from apscheduler.schedulers.asyncio import AsyncIOScheduler
+# from handlers.send_task_notifications.keyboard import keyboard
+#
+# logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger(__name__)
+#
+# send_task_router = Router()
+#
+# db = DataBase()
+#
+# scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
+#
+#
+# async def send_message_current_time(bot: Bot, user_id: int, text: str, keyboard: keyboard):
+#     await bot.send_message(chat_id=user_id, text=text, reply_markup=keyboard)
 
 
 # async def add_jobs(bot: Bot, processes):

@@ -7,6 +7,7 @@ import platform
 from database.Database import DataBase, InputDB, EmployeesDB, ProcessDB, NotificationDB
 from handlers.start.start import register_start_handlers
 from handlers.user_answer.user_answer import register_user_response
+from handlers.send_task_notifications.adding_messages_queue import *
 
 # Установите политику цикла событий для Windows
 if platform.system() == 'Windows':
@@ -27,13 +28,11 @@ inputdb, processesdb = InputDB(db), ProcessDB(db)
 
 async def start():
     try:
-        # await db.reset_database()
-        # await db.create_db()
-        tasks = await inputdb.get_tasks()
-        print(tasks)
-        await processesdb.create_new_processes(tasks, db)
-        processes = await processesdb.get_all_processes()
-        print(processes)
+        # await db.reset_database() # Очищает БД
+        # await db.create_db() # Создает все модели в БД
+        tasks = await inputdb.get_tasks()  # Получаем все текущие задачи
+        await processesdb.create_new_processes(tasks, db)  # Создаем новые процессы
+        await  getting_employees_current_task(bot)
 
         # Регистрация обработчиков
         register_start_handlers(dp)
