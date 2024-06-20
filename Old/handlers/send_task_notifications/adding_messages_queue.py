@@ -1,14 +1,13 @@
 import datetime
 
 from aiogram import Bot, Router
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from handlers.send_task_notifications.keyboard import keyboard
+from Old.handlers.send_task_notifications.keyboard import keyboard
 import logging
-from database_old.Database import DataBase, ProcessDB, EmployeesDB, ProcessStatus, EmployeeStatus
+from Old.database_old.Database import DataBase, ProcessDB, EmployeesDB, ProcessStatus, EmployeeStatus
 
-from global_variables import bot
-from handlers.sheduler import scheduler
+from Old.global_variables import bot
+from Old.handlers.sheduler import scheduler
 
 db = DataBase()
 processDB = ProcessDB(db)

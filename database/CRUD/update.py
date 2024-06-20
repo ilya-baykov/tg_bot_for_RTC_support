@@ -1,0 +1,2 @@
+class EmployeesUpdater:
+    pass

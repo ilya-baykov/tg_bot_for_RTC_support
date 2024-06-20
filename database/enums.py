@@ -2,9 +2,9 @@ import enum
 
 
 class IntervalType(enum.Enum):
-    every_day = "Каждый день"
-    once_month = "Раз в месяц"
-    one_time = "Однократное выполнение"
+    ежедневно = "Каждый день"
+    ежемесячно = "Раз в месяц"
+    разово = "Однократное выполнение"
 
 
 class ActionStatus(enum.Enum):

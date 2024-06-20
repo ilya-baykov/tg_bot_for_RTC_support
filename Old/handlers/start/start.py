@@ -1,14 +1,14 @@
-from aiogram import Bot, Router, F
+from aiogram import Router, F
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import Message, ContentType
-from database_old.Database import DataBase
-from database_old.Database import EmployeesDB
-from database_old.Database import EmployeePhonesDB
-from handlers.start.keyboard import keyboard
-from handlers.start.filter import IsTrueContact
-from handlers.user_answer.state import UserResponse
+from aiogram.types import Message
+from Old.database_old.Database import DataBase
+from Old.database_old.Database import EmployeesDB
+from Old.database_old.Database import EmployeePhonesDB
+from Old.handlers.start.keyboard import keyboard
+from Old.handlers.start.filter import IsTrueContact
+from Old.handlers.user_answer.state import UserResponse
 
 start_router = Router()
 
