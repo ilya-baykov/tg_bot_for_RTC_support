@@ -5,7 +5,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from handlers.send_task_notifications.keyboard import keyboard
 import logging
-from database.Database import DataBase, ProcessDB, EmployeesDB, ProcessStatus, EmployeeStatus
+from database_old.Database import DataBase, ProcessDB, EmployeesDB, ProcessStatus, EmployeeStatus
 
 from global_variables import bot
 from handlers.sheduler import scheduler

@@ -3,9 +3,9 @@ from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message, ContentType
-from database.Database import DataBase
-from database.Database import EmployeesDB
-from database.Database import EmployeePhonesDB
+from database_old.Database import DataBase
+from database_old.Database import EmployeesDB
+from database_old.Database import EmployeePhonesDB
 from handlers.start.keyboard import keyboard
 from handlers.start.filter import IsTrueContact
 from handlers.user_answer.state import UserResponse

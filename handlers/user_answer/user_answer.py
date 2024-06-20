@@ -6,7 +6,7 @@ from aiogram.types import Message
 
 from handlers.send_task_notifications.adding_messages_queue import getting_employees_current_task
 from handlers.user_answer.state import UserResponse
-from database.Database import NotificationDB, EmployeesDB, ProcessDB, DataBase, NotificationProcessStatus, \
+from database_old.Database import NotificationDB, EmployeesDB, ProcessDB, DataBase, NotificationProcessStatus, \
     ProcessStatus, EmployeeStatus
 
 user_answer = Router()
