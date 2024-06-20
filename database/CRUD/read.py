@@ -14,7 +14,7 @@ class EmployeesReader:
 
     async def get_employee_by_telegram_id_or_username(self, telegram_id: str | None = None,
                                                       telegram_username: str | None = None):
-        """Возврашает объект сотрудника"""
+        """Возвращает объект сотрудника"""
 
         async  with db.Session() as request:
             if telegram_id is None and telegram_username is None:

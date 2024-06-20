@@ -16,7 +16,7 @@ if platform.system() == 'Windows':
 async def preparation_for_launch():
     # await db.reset_database()  # Очищает БД
     # await db.create_db()  # Создает все модели в БД
-    await ActionsCreator().create_new_action()
+    await ActionsCreator().create_new_action()  # Считываем входную таблицу и формируем актуальные задачи
     # Получить все задачи
     # Заполнить таблицу с действиями
     pass

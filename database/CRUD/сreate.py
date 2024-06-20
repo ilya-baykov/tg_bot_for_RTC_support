@@ -13,6 +13,7 @@ input_table_reader = InputTableReader()
 
 class EmployeesCreator:
     async def create_new_employees(self, name: str | None, telegram_username: str, telegram_id: str | int):
+        """Добавляем / Регистрируем нового сотрудника или изменяем username у текущего сотрудника """
         async with db.Session() as request:
             employee = await employees_reader.get_employee_by_telegram_id_or_username(telegram_id=str(telegram_id))
             if employee:
@@ -37,6 +38,7 @@ class EmployeesCreator:
 
 class ActionsCreator:
     async def create_new_action(self):
+        """Формируем актуальные задачи из исходной таблицы """
         async with db.Session() as request:
             tasks = await input_table_reader.get_all_actions()
             for task in tasks:
