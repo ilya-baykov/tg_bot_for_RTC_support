@@ -29,7 +29,9 @@ class Actions(Base):
         ForeignKey('input_table.id', ondelete="SET NULL"))  # Ссылка на действие из входной таблицы
 
     employee_id: Mapped[int] = mapped_column(ForeignKey('employees.id'))  # Ссылка на сотрудника из таблицы сотрудников
-    status: Mapped[ActionStatus]  # Одно из возможных состояний процесса
+
+    status: Mapped[ActionStatus] = mapped_column(default=ActionStatus.queued_to_be_added)
+
     actual_time_message: Mapped[datetime.datetime] = mapped_column(nullable=True)
 
     input_table = relationship("InputData")

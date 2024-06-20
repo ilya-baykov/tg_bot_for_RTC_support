@@ -2,7 +2,7 @@ import asyncio
 import logging
 import platform
 from database.CRUD.read import EmployeesReader
-from database.CRUD.сreate import EmployeesCreator
+from database.CRUD.сreate import EmployeesCreator, ActionsCreator
 from main_objects import db
 
 logging.basicConfig(level=logging.INFO)
@@ -16,7 +16,7 @@ if platform.system() == 'Windows':
 async def preparation_for_launch():
     # await db.reset_database()  # Очищает БД
     # await db.create_db()  # Создает все модели в БД
-    await EmployeesCreator().create_new_employees(name="Илья", telegram_username="1", telegram_id="123")
+    await ActionsCreator().create_new_action()
     # Получить все задачи
     # Заполнить таблицу с действиями
     pass

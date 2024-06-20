@@ -2,12 +2,13 @@ import logging
 
 from main_objects import db
 from database.models import *
-from database.CRUD.read import EmployeesReader
+from database.CRUD.read import EmployeesReader, InputTableReader
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 employees_reader = EmployeesReader()
+input_table_reader = InputTableReader()
 
 
 class EmployeesCreator:
@@ -32,3 +33,19 @@ class EmployeesCreator:
                 logger.info(f"Пользователь с telegram_id '{telegram_id}' добавлен в таблицу employees.")
 
                 await request.commit()
+
+
+class ActionsCreator:
+    async def create_new_action(self):
+        async with db.Session() as request:
+            tasks = await input_table_reader.get_all_actions()
+            for task in tasks:
+                employee = await employees_reader.get_employee_by_telegram_id_or_username(task.telegram_username)
+                if employee:
+                    request.add(Actions(
+                        input_data_id=task.id,
+                        employee_id=employee.id,
+                    ))
+                    await request.commit()
+                else:
+                    logger.warning(f"Сотрудник с telegram_username '{task.employee_telegram}' не найден.")
