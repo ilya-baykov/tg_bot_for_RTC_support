@@ -6,7 +6,6 @@ from aiogram.types import Message
 
 import datetime
 
-
 from database.CRUD.update import ActionsUpdater
 from database.CRUD.сreate import employees_reader, actions_reader, input_table_reader, employees_updater, ReportCreator
 from database.enums import FinalStatus, ActionStatus, EmployeesStatus
@@ -25,14 +24,14 @@ user_answer = Router()
 
 @user_answer.message(F.text == "Выполнено")
 async def user_response(message: Message, state: FSMContext):
-    employee = await employees_reader.get_employee_by_telegram_id_or_username(telegram_id=message.from_user.id)
+    employee = await employees_reader.get_employee_by_telegram_id_or_username(telegram_id=str(message.from_user.id))
     if employee:
-        employee_id = employee.employee_id
+        employee_id = employee.id
         sent_process = await actions_reader.get_submitted_task_by_employee_id(employee_id)  # Текущая задача
         if sent_process:
             task_from_intput_table = await input_table_reader.get_input_task_by_id(sent_process.input_data_id)
             actual_dispatch_time = sent_process.actual_time_message
-            await report_creator.create_new_report(action_id=sent_process,
+            await report_creator.create_new_report(action_id=sent_process.id,
                                                    employee_id=employee_id,
                                                    expected_dispatch_time=task_from_intput_table.scheduled_time,
                                                    actual_dispatch_time=actual_dispatch_time,
@@ -50,7 +49,7 @@ async def user_response(message: Message, state: FSMContext):
                 logging.info(f"Следующее действие на отправку: {next_process.id}")
 
                 await actions_updater.update_status(next_process, ActionStatus.waiting_to_be_sent)
-                await add_task_scheduler (action_task=next_process, scheduler=scheduler)
+                await add_task_scheduler(action_task=next_process, scheduler=scheduler)
 
             await message.answer(f"Отлично, мы записали это в БД")
         else:

@@ -1,5 +1,6 @@
 import datetime
 import logging
+from database.models import Actions
 
 from run_app.main_objects import db
 
@@ -29,14 +30,18 @@ class ActionsUpdater:
     async def update_status(action, status):
         """Изменяет статус действия"""
         async with db.Session() as request:
-            # Получаем действие
-            action = await request.merge(action)
+            # Получаем объект действия из базы данных
+            action_obj = await request.get(Actions, action.id)
 
-            # Вносим изменения в статус
-            action.status = status
-            logger.info(f"Действие №{action.id} изменение в статусе :{status}")
-            # Сохраняем изменения
-            await request.commit()
+            if action_obj:
+                # Обновляем статус действия
+                action_obj.status = status
+                logger.info(f"Действие №{action_obj.id} изменение в статусе: {status}")
+
+                # Сохраняем изменения
+                await request.commit()
+            else:
+                logger.warning(f"Действие с ID {action.id} не найдено в базе данных.")
 
     @staticmethod
     async def update_actual_time_message(action, time: datetime.datetime):
