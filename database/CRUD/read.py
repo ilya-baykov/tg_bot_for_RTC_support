@@ -64,6 +64,18 @@ class InputTableReader:
             logger.info(f"Найденные актуальные задачи: {[task.process_name for task in tasks]}")
             return tasks
 
+    @staticmethod
+    async def get_input_task_by_id(input_data_id: int):
+        async with db.Session() as request:
+            query = select(InputData).filter_by(id=input_data_id)
+            result = await request.execute(query)
+            input_data_task = result.scalar_one_or_none()
+            if input_data_task:
+                logger.info(f"По ID:{input_data_id} получена задача {input_data_task.process_name}")
+            else:
+                logger.info(f"По ID:{input_data_id} не найдено задач")
+            return input_data_task
+
 
 class ActionsReader:
     @staticmethod
@@ -78,3 +90,13 @@ class ActionsReader:
             else:
                 logger.info(f"По ключу входной таблицы {input_data_id} не было получено задач")
             return task
+
+    @staticmethod
+    async def get_pending_actions() -> List:
+        """Возвращает список всех действий, ожидающих отправки сообщения """
+        async with db.Session() as request:
+            query = select(Actions).filter_by(status=ActionStatus.waiting_to_be_sent)
+            result = await request.execute(query)
+            tasks = result.scalars().all()
+            logger.info(f"Действия ожидающие отправки:{[task.id for task in tasks]}")
+            return tasks

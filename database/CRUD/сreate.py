@@ -77,9 +77,6 @@ class ActionsCreator:
                                 status = ActionStatus.queued_to_be_added
                             else:
                                 status = ActionStatus.waiting_to_be_sent
-
-                                await employees_updater.update_status(employee, EmployeesStatus.busy)  # Изменяем статус
-
                         else:
                             logger.warning(f"Сотрудник с telegram_username '{task.employee_telegram}' не найден.")
                             continue

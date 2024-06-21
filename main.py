@@ -2,8 +2,11 @@ import asyncio
 import logging
 import platform
 
+from main_objects import start_scheduler, scheduler
+from bot_running import start_bot
+from database.CRUD.read import ActionsReader
 from database.CRUD.сreate import ActionsCreator
-from main_objects import db
+from sent_task_to_emploeyee.sending_messages import add_task_scheduler
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -14,10 +17,18 @@ if platform.system() == 'Windows':
 
 
 async def preparation_for_launch():
+    await start_scheduler(scheduler)
+
     # await db.reset_database()  # Очищает БД
     # await db.create_db()  # Создает все модели в БД
     await ActionsCreator().create_new_action()  # Считываем входную таблицу и формируем актуальные задачи
-    # Вызывать бота
+
+    pending_actions = await ActionsReader().get_pending_actions()  # Получаем все задачи, ожидающие отправки
+
+    for action in pending_actions:
+        await add_task_scheduler(scheduler=scheduler, action_task=action)  # Передаем задачи в планировщик заданий
+
+    # await start_bot()
 
 
 if __name__ == '__main__':
