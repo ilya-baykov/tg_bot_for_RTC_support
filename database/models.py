@@ -2,7 +2,8 @@ import datetime
 from typing import Annotated
 from sqlalchemy import ForeignKey, Interval
 from sqlalchemy.orm import Mapped, relationship, mapped_column
-from Old.database_old.Base import Base, str_20, str_50, str_100, str_512
+
+from database.Base import Base, str_20, str_50, str_100, str_512
 from database.enums import *
 
 intpk = Annotated[int, mapped_column(primary_key=True)]

@@ -13,7 +13,6 @@ scheduler = AsyncIOScheduler(timezone="Europe/Moscow")  # Создание пл�
 bot = Bot(token=environ.get('TOKEN', 'define me!'))
 
 
-
 async def start_scheduler(scheduler):
     scheduler.start()
     logger.info(f"Планировщик заданий {scheduler} запущен ")
