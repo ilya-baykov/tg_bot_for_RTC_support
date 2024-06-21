@@ -63,3 +63,18 @@ class InputTableReader:
 
             logger.info(f"Найденные актуальные задачи: {[task.process_name for task in tasks]}")
             return tasks
+
+
+class ActionsReader:
+    @staticmethod
+    async def get_action(input_data_id: int):
+        """Получаем действия по идентификатору входной таблицы"""
+        async with db.Session() as request:
+            query = select(Actions).filter_by(input_data_id=input_data_id)
+            result = await request.execute(query)
+            task = result.scalar_one_or_none()
+            if task:
+                logger.info(f"По ключу входной таблицы {input_data_id} получена задача {task.id}")
+            else:
+                logger.info(f"По ключу входной таблицы {input_data_id} не было получено задач")
+            return task

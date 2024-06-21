@@ -1,14 +1,17 @@
 import logging
 
+from database.CRUD.update import EmployeesUpdater
 from main_objects import db
 from database.models import *
-from database.CRUD.read import EmployeesReader, InputTableReader
+from database.CRUD.read import EmployeesReader, InputTableReader, ActionsReader
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 employees_reader = EmployeesReader()
 input_table_reader = InputTableReader()
+employees_updater = EmployeesUpdater()
+actions_reader = ActionsReader()
 
 
 class EmployeesCreator:
@@ -46,25 +49,47 @@ class ActionsCreator:
             busy_employee = {}  # Словарь 'занятых' сотрудниклв
             for task in tasks:
 
-                # Если пользователь в словаре занятых сотрудников, то делаем задачу со статусом "ожидает добавления"
-                if task.telegram_username in busy_employee:
-                    status = ActionStatus.queued_to_be_added
-                # Иначе - добавляем пользователя в список занятых сотрудников, задачу со статусом "готов к отправке"
+                # Проверка нахождения задачи в таблице actions (по ключу из входной таблицы)
+                availability_check = await actions_reader.get_action(task.id)
+                if availability_check:
+                    logger.info(f"Задача {task.id} уже была создана.")
                 else:
-                    employee = await employees_reader.get_employee_by_telegram_id_or_username(task.telegram_username)
-                    if employee:
-                        busy_employee[task.telegram_username] = employee
-                        status = ActionStatus.waiting_to_be_sent
+
+                    # Если пользователь в словаре занятых сотрудников, то делаем задачу со статусом "ожидает добавления"
+                    if task.telegram_username in busy_employee:
+                        status = ActionStatus.queued_to_be_added
+
+                    # Иначе - добавляем пользователя в список занятых сотрудников
                     else:
-                        logger.warning(f"Сотрудник с telegram_username '{task.employee_telegram}' не найден.")
-                        continue
+                        # Получаем сотрудника из БД
+                        employee = await employees_reader.get_employee_by_telegram_id_or_username(
+                            task.telegram_username)
+                        if employee:
+                            # Добавляем сотрудника в словарь занятых
+                            busy_employee[task.telegram_username] = employee
 
-                # Создаем новый процесс
-                request.add(Actions(
-                    input_data_id=task.id,
-                    employee_id=employee.id,
-                    status=status
-                ))
+                            # Получаем количество задач у сотрудника
+                            employee_quantity_tasks = await employees_reader.get_all_employee_tasks(
+                                employee_id=employee.id)
 
-                await request.commit()
-                logger.info(f"Задача {task.process_name} была добавлена со статусом {status}")
+                            # Устанавливаем соответствующий статус процессу исходя из количества действий у сотрудника
+                            if len(employee_quantity_tasks) > 0:
+                                status = ActionStatus.queued_to_be_added
+                            else:
+                                status = ActionStatus.waiting_to_be_sent
+
+                                await employees_updater.update_status(employee, EmployeesStatus.busy)  # Изменяем статус
+
+                        else:
+                            logger.warning(f"Сотрудник с telegram_username '{task.employee_telegram}' не найден.")
+                            continue
+
+                    # Создаем новый процесс
+                    request.add(Actions(
+                        input_data_id=task.id,
+                        employee_id=employee.id,
+                        status=status
+                    ))
+
+                    await request.commit()
+                    logger.info(f"Задача {task.process_name} была добавлена со статусом {status}")
