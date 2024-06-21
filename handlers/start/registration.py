@@ -1,18 +1,14 @@
 from aiogram import Router, F
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message
 
 from database.CRUD.сreate import employees_reader, EmployeesCreator
 from handlers.start.keyboard import keyboard
 from handlers.start.filter import IsTrueContact
+from handlers.start.state import UserRegistration
 
 start_router = Router()
-
-
-class UserRegistration(StatesGroup):
-    input_phone = State()
 
 
 @start_router.message(CommandStart())

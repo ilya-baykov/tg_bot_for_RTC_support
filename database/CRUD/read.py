@@ -117,3 +117,36 @@ class ActionsReader:
             tasks = result.scalars().all()
             logger.info(f"Действия ожидающие отправки:{[task.id for task in tasks]}")
             return tasks
+
+    @staticmethod
+    async def get_submitted_task_by_employee_id(employee_id: int):
+        """Возвращает список всех действий сотрудника со статусом 'отправлено' """
+        async with db.Session() as request:
+            query = (
+                select(Actions)
+                .filter_by(employee_id=employee_id, status=ActionStatus.sent)
+            )
+            result = await request.execute(query)
+            sent_task = result.scalar_one_or_none()
+
+            if sent_task:
+                logger.info(f"У сотрудника №: {employee_id} есть действие со статусом 'Отправлено' - №{sent_task}")
+            else:
+                logger.info(f"У сотрудника №: {employee_id} нет действий со статусом 'Отправлено'")
+
+            return sent_task
+
+    @staticmethod
+    async def get_queued_to_be_added_actions_by_employee_id(employee_id) -> List:
+        """Возвращает все задачи сотрудника со статусом 'В очереди на добавление в обработку' """
+        async with db.Session() as request:
+            query = (
+                select(Actions)
+                .join(InputData, Actions.input_data_id == InputData.id)
+                .filter(Actions.employee_id == employee_id, Actions.status == ActionStatus.queued_to_be_added)
+                .order_by(asc(InputData.scheduled_time))
+            )
+            result = await request.execute(query)
+            actions = result.scalars().all()
+            logger.info(f"У сотрудника №{employee_id} есть такие задачи в очереди: {[action.id for action in actions]}")
+            return actions
