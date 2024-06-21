@@ -1,8 +1,8 @@
 import asyncio
 import logging
 import platform
-from database.CRUD.read import EmployeesReader
-from database.CRUD.сreate import EmployeesCreator, ActionsCreator
+
+from database.CRUD.сreate import ActionsCreator
 from main_objects import db
 
 logging.basicConfig(level=logging.INFO)
@@ -17,9 +17,7 @@ async def preparation_for_launch():
     # await db.reset_database()  # Очищает БД
     # await db.create_db()  # Создает все модели в БД
     await ActionsCreator().create_new_action()  # Считываем входную таблицу и формируем актуальные задачи
-    # Получить все задачи
-    # Заполнить таблицу с действиями
-    pass
+    # Вызывать бота
 
 
 if __name__ == '__main__':

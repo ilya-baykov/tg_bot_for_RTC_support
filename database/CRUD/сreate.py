@@ -12,7 +12,8 @@ input_table_reader = InputTableReader()
 
 
 class EmployeesCreator:
-    async def create_new_employees(self, name: str | None, telegram_username: str, telegram_id: str | int):
+    @staticmethod
+    async def create_new_employees(name: str | None, telegram_username: str, telegram_id: str | int):
         """Добавляем / Регистрируем нового сотрудника или изменяем username у текущего сотрудника """
         async with db.Session() as request:
             employee = await employees_reader.get_employee_by_telegram_id_or_username(telegram_id=str(telegram_id))
@@ -37,17 +38,38 @@ class EmployeesCreator:
 
 
 class ActionsCreator:
-    async def create_new_action(self):
+    @staticmethod
+    async def create_new_action():
         """Формируем актуальные задачи из исходной таблицы """
         async with db.Session() as request:
             tasks = await input_table_reader.get_all_actions()
+            employee_tasks_cache = {}
             for task in tasks:
+                # Получаем сотрудника
                 employee = await employees_reader.get_employee_by_telegram_id_or_username(task.telegram_username)
                 if employee:
+
+                    # Получаем количество задач у сотрудника и кешируем эти данные
+                    if employee.id not in employee_tasks_cache:
+                        employee_tasks = await EmployeesReader.get_all_employee_tasks(employee_id=employee.id)
+                        employee_tasks_cache[employee.id] = len(employee_tasks)
+
+                    print(f"ID сотрудника : {employee.id}, Количество его задач: {employee_tasks_cache[employee.id]}")
+
+                    quantity_employee_tasks = employee_tasks_cache[employee.id]
+
+                    # Формируем статус задачи. (Готов к отправке или ожидает добавления в список задач)
+                    status = ActionStatus.waiting_to_be_sent if quantity_employee_tasks == 0 else ActionStatus.queued_to_be_added
+
+                    # Создаем новый процесс
                     request.add(Actions(
                         input_data_id=task.id,
                         employee_id=employee.id,
+                        status=status
                     ))
+                    employee_tasks_cache[employee.id] += 1
                     await request.commit()
+                    logger.info(f"Задача {task.process_name} была добавлена со статусом {status}")
+
                 else:
                     logger.warning(f"Сотрудник с telegram_username '{task.employee_telegram}' не найден.")

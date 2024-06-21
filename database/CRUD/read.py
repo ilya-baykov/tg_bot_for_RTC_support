@@ -1,4 +1,5 @@
 import logging
+from typing import List
 
 from sqlalchemy import select, asc
 
@@ -12,7 +13,8 @@ logger = logging.getLogger(__name__)
 
 class EmployeesReader:
 
-    async def get_employee_by_telegram_id_or_username(self, telegram_id: str | None = None,
+    @staticmethod
+    async def get_employee_by_telegram_id_or_username(telegram_id: str | None = None,
                                                       telegram_username: str | None = None):
         """Возвращает объект сотрудника"""
 
@@ -32,9 +34,20 @@ class EmployeesReader:
             logger.info(f"Найден сотрудник: {employee.name}")
             return employee
 
+    @staticmethod
+    async def get_all_employee_tasks(employee_id: int) -> List:
+        """Возвращает все текущие задачи сотрудника"""
+        async with db.Session() as request:
+            query = select(Actions).filter_by(employee_id=employee_id)
+            result = await request.execute(query)
+            tasks = result.scalars().all()
+            logger.info(f"У сотрудника {employee_id} найдены такие задачи : {[task.id for task in tasks]}")
+            return tasks
+
 
 class InputTableReader:
-    async def get_all_actions(self):
+    @staticmethod
+    async def get_all_actions():
         """Возвращает список всех действий из исходной таблицы"""
 
         async with (db.Session() as request):
