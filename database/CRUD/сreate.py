@@ -42,34 +42,29 @@ class ActionsCreator:
     async def create_new_action():
         """Формируем актуальные задачи из исходной таблицы """
         async with db.Session() as request:
-            tasks = await input_table_reader.get_all_actions()
-            employee_tasks_cache = {}
+            tasks = await input_table_reader.get_all_actions()  # Получаем список всех задач из входной таблицы
+            busy_employee = {}  # Словарь 'занятых' сотрудниклв
             for task in tasks:
-                # Получаем сотрудника
-                employee = await employees_reader.get_employee_by_telegram_id_or_username(task.telegram_username)
-                if employee:
 
-                    # Получаем количество задач у сотрудника и кешируем эти данные
-                    if employee.id not in employee_tasks_cache:
-                        employee_tasks = await EmployeesReader.get_all_employee_tasks(employee_id=employee.id)
-                        employee_tasks_cache[employee.id] = len(employee_tasks)
-
-                    print(f"ID сотрудника : {employee.id}, Количество его задач: {employee_tasks_cache[employee.id]}")
-
-                    quantity_employee_tasks = employee_tasks_cache[employee.id]
-
-                    # Формируем статус задачи. (Готов к отправке или ожидает добавления в список задач)
-                    status = ActionStatus.waiting_to_be_sent if quantity_employee_tasks == 0 else ActionStatus.queued_to_be_added
-
-                    # Создаем новый процесс
-                    request.add(Actions(
-                        input_data_id=task.id,
-                        employee_id=employee.id,
-                        status=status
-                    ))
-                    employee_tasks_cache[employee.id] += 1
-                    await request.commit()
-                    logger.info(f"Задача {task.process_name} была добавлена со статусом {status}")
-
+                # Если пользователь в словаре занятых сотрудников, то делаем задачу со статусом "ожидает добавления"
+                if task.telegram_username in busy_employee:
+                    status = ActionStatus.queued_to_be_added
+                # Иначе - добавляем пользователя в список занятых сотрудников, задачу со статусом "готов к отправке"
                 else:
-                    logger.warning(f"Сотрудник с telegram_username '{task.employee_telegram}' не найден.")
+                    employee = await employees_reader.get_employee_by_telegram_id_or_username(task.telegram_username)
+                    if employee:
+                        busy_employee[task.telegram_username] = employee
+                        status = ActionStatus.waiting_to_be_sent
+                    else:
+                        logger.warning(f"Сотрудник с telegram_username '{task.employee_telegram}' не найден.")
+                        continue
+
+                # Создаем новый процесс
+                request.add(Actions(
+                    input_data_id=task.id,
+                    employee_id=employee.id,
+                    status=status
+                ))
+
+                await request.commit()
+                logger.info(f"Задача {task.process_name} была добавлена со статусом {status}")
