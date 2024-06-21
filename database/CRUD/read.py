@@ -52,6 +52,20 @@ class EmployeesReader:
             return employee
 
     @staticmethod
+    async def get_employee_by_id(employee_id: int):
+        """Возвращает объект сотрудника (модели Employees) по его id"""
+        async with db.Session() as request:
+            query = select(Employees).filter_by(id=employee_id)
+            result = await request.execute(query)
+            employee = result.scalar_one_or_none()
+            if employee:
+                logger.info(f"По Первичному ключу: {employee_id} получен сотрудник {employee.name}")
+            else:
+                logger.info(f"По Первичному ключу: {employee_id} не был найден  сотрудник")
+
+            return employee
+
+    @staticmethod
     async def get_all_employee_tasks(employee_id: int) -> List:
         """Возвращает все текущие задачи сотрудника"""
         async with db.Session() as request:

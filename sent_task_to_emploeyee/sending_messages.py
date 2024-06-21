@@ -1,6 +1,6 @@
 import logging
 
-from database.CRUD.read import InputTableReader
+from database.CRUD.read import InputTableReader, EmployeesReader
 from database.CRUD.update import ActionsUpdater
 from database.CRUD.сreate import employees_updater
 from database.enums import IntervalType, EmployeesStatus, ActionStatus
@@ -14,6 +14,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 actions_updater = ActionsUpdater()
+employees_reader = EmployeesReader()
 
 
 async def add_task_scheduler(scheduler, action_task: Actions):
@@ -45,7 +46,7 @@ async def add_task_scheduler(scheduler, action_task: Actions):
 
 async def sent_message(action_task: Actions, input_data_task: InputData):
     message_text = f"Имя процесса: {input_data_task.process_name}\nОписание процесса:{input_data_task.action_description}"
-    employee = action_task.employee
+    employee = await employees_reader.get_employee_by_id(action_task.employee_id)
     await actions_updater.update_status(action_task, ActionStatus.sent)  # Изменить статус действия
     await employees_updater.update_status(employee, EmployeesStatus.busy)  # Изменяем статус сотрудника
 
