@@ -1,11 +1,9 @@
-from os import environ
-
-from aiogram import Dispatcher, Bot
+from aiogram import Dispatcher
 
 from handlers.processing_employee_responses.employee_responses import register_user_response
 from handlers.start.registration import register_start_handlers
+from main_objects import bot
 
-bot = Bot(token=environ.get('TOKEN', 'define me!'))
 dp = Dispatcher()
 
 

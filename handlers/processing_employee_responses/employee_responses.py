@@ -6,6 +6,7 @@ from aiogram.types import Message
 
 import datetime
 
+
 from database.CRUD.update import ActionsUpdater
 from database.CRUD.сreate import employees_reader, actions_reader, input_table_reader, employees_updater, ReportCreator
 from database.enums import FinalStatus, ActionStatus, EmployeesStatus
@@ -49,7 +50,7 @@ async def user_response(message: Message, state: FSMContext):
                 logging.info(f"Следующее действие на отправку: {next_process.id}")
 
                 await actions_updater.update_status(next_process, ActionStatus.waiting_to_be_sent)
-                await add_task_scheduler(action_task=next_process, scheduler=scheduler)
+                await add_task_scheduler (action_task=next_process, scheduler=scheduler)
 
             await message.answer(f"Отлично, мы записали это в БД")
         else:

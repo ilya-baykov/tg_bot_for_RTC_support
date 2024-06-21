@@ -1,13 +1,15 @@
 import logging
 
+from aiogram import Bot
+
 from database.CRUD.read import InputTableReader
 from database.CRUD.update import ActionsUpdater
 from database.CRUD.сreate import employees_updater
 from database.enums import IntervalType, EmployeesStatus, ActionStatus
 from datetime import datetime, timedelta
 
-from bot_running import bot
 from database.models import Actions, InputData
+from main_objects import bot
 from sent_task_to_emploeyee.keyboard import keyboard
 
 logging.basicConfig(level=logging.INFO)

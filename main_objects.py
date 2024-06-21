@@ -1,5 +1,7 @@
 import logging
+from os import environ
 
+from aiogram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from database.DataBase import DataBase
 
@@ -8,6 +10,8 @@ logger = logging.getLogger(__name__)
 
 db = DataBase()
 scheduler = AsyncIOScheduler(timezone="Europe/Moscow")  # Создание планировщика задач
+bot = Bot(token=environ.get('TOKEN', 'define me!'))
+
 
 
 async def start_scheduler(scheduler):

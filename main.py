@@ -2,7 +2,7 @@ import asyncio
 import logging
 import platform
 
-from main_objects import start_scheduler, scheduler, db
+from main_objects import start_scheduler, scheduler, bot
 from bot_running import start_bot
 from database.CRUD.read import ActionsReader
 from database.CRUD.сreate import ActionsCreator
@@ -26,7 +26,7 @@ async def preparation_for_launch():
     pending_actions = await ActionsReader().get_pending_actions()  # Получаем все задачи, ожидающие отправки
 
     for action in pending_actions:
-        await add_task_scheduler(scheduler=scheduler, action_task=action)  # Передаем задачи в планировщик заданий
+        await add_task_scheduler(scheduler=scheduler, action_task=action)  # Передаем задачи в планировщик
 
     await start_bot()
 
