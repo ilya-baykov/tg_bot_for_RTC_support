@@ -18,7 +18,7 @@ class EmployeesReader:
                                                       telegram_username: str | None = None):
         """Возвращает объект сотрудника"""
 
-        async  with db.Session() as request:
+        async with db.Session() as request:
             if telegram_id is None and telegram_username is None:
                 raise TelegramIdOrUsernameError("Необходимо задать telegram_id или telegram_username")
 
@@ -30,8 +30,25 @@ class EmployeesReader:
 
             result = await request.execute(query)
             employee = result.scalar_one_or_none()
+            if employee:
+                logger.info(f"Найден сотрудник: {employee.name}")
+            else:
+                logger.info(f"Сотрудник не найден. Поиск по {telegram_id}, {telegram_username} ")
+            return employee
 
-            logger.info(f"Найден сотрудник: {employee.name}")
+    @staticmethod
+    async def get_employee_by_phone(phone_number: str):
+        """Возвращает объект сотрудника (модели Employees) по его номеру телефона"""
+        async with db.Session() as request:
+            query = select(EmployeesContact).filter_by(phone_number=phone_number)
+            result = await request.execute(query)
+            employee = result.scalar_one_or_none()
+            if employee:
+                logger.info(
+                    f"По номеру телефона: {phone_number} был найден сотрудник №{employee.id} - {employee.fullname}")
+            else:
+                logger.info(f"По номеру телефона: {phone_number} не было найдено сотрудников")
+
             return employee
 
     @staticmethod

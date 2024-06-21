@@ -2,7 +2,7 @@ import asyncio
 import logging
 import platform
 
-from main_objects import start_scheduler, scheduler
+from main_objects import start_scheduler, scheduler, db
 from bot_running import start_bot
 from database.CRUD.read import ActionsReader
 from database.CRUD.сreate import ActionsCreator
@@ -28,7 +28,7 @@ async def preparation_for_launch():
     for action in pending_actions:
         await add_task_scheduler(scheduler=scheduler, action_task=action)  # Передаем задачи в планировщик заданий
 
-    # await start_bot()
+    await start_bot()
 
 
 if __name__ == '__main__':
