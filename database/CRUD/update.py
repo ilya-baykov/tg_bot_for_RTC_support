@@ -1,7 +1,7 @@
 import datetime
 import logging
 
-from main_objects import db
+from run_app.main_objects import db
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ class ActionsUpdater:
     async def update_actual_time_message(action, time: datetime.datetime):
         """Устанавливает или изменяет время запуска задачи (отправки сообщения)"""
         async with db.Session() as request:
-            action = await action.merge(action)
+            action = await request.merge(action)
             action.actual_time_message = time
             logger.info(f"Для задачи №{action.id} установлено время запуск: {time}")
             await request.commit()

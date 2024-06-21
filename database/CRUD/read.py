@@ -3,7 +3,7 @@ from typing import List
 
 from sqlalchemy import select, asc
 
-from main_objects import db
+from run_app.main_objects import db
 from database.models import *
 from exeptions import *
 

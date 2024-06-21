@@ -11,7 +11,7 @@ from database.CRUD.update import ActionsUpdater
 from database.CRUD.сreate import employees_reader, actions_reader, input_table_reader, employees_updater, ReportCreator
 from database.enums import FinalStatus, ActionStatus, EmployeesStatus
 from handlers.processing_employee_responses.state import UserResponse
-from main_objects import scheduler
+from run_app.main_objects import scheduler
 from sent_task_to_emploeyee.sending_messages import add_task_scheduler
 
 logging.basicConfig(level=logging.INFO)

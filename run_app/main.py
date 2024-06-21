@@ -2,9 +2,9 @@ import asyncio
 import logging
 import platform
 
-from main_objects import start_scheduler, scheduler, bot
-from bot_running import start_bot
-from database.CRUD.read import ActionsReader
+from main_objects import start_scheduler, scheduler
+from run_app.bot_running import start_bot
+from database.CRUD.read import ActionsReader, EmployeesReader
 from database.CRUD.сreate import ActionsCreator
 from sent_task_to_emploeyee.sending_messages import add_task_scheduler
 

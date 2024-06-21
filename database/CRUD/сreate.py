@@ -1,8 +1,7 @@
-import datetime
 import logging
 
 from database.CRUD.update import EmployeesUpdater
-from main_objects import db
+from run_app.main_objects import db
 from database.models import *
 from database.CRUD.read import EmployeesReader, InputTableReader, ActionsReader
 
@@ -64,7 +63,7 @@ class ActionsCreator:
                     else:
                         # Получаем сотрудника из БД
                         employee = await employees_reader.get_employee_by_telegram_id_or_username(
-                            task.telegram_username)
+                            telegram_username=task.telegram_username)
                         if employee:
                             # Добавляем сотрудника в словарь занятых
                             busy_employee[task.telegram_username] = employee
@@ -79,7 +78,7 @@ class ActionsCreator:
                             else:
                                 status = ActionStatus.waiting_to_be_sent
                         else:
-                            logger.warning(f"Сотрудник с telegram_username '{task.employee_telegram}' не найден.")
+                            logger.warning(f"Сотрудник с telegram_username '{task.telegram_username}' не найден.")
                             continue
 
                     # Создаем новый процесс
@@ -110,4 +109,4 @@ class ReportCreator:
                 comment=comment
             ))
             await request.commit()
-            logger.info(f"Добавлена запись в отчетную таблицу. № Действия {action_id} со статусом {statuss}")
+            logger.info(f"Добавлена запись в отчетную таблицу. № Действия {action_id} со статусом {status}")
