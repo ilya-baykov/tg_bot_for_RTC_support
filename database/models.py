@@ -1,75 +1,78 @@
 import datetime
-import enum
 from typing import Annotated
-from sqlalchemy import ForeignKey, func, DateTime
+from sqlalchemy import ForeignKey, Interval
 from sqlalchemy.orm import Mapped, relationship, mapped_column
-from database.Base import Base, str_50, str_100, str_512
 
-
-def register_models() -> None:
-    pass
-
+from database.Base import Base, str_20, str_50, str_100, str_512
+from database.enums import *
 
 intpk = Annotated[int, mapped_column(primary_key=True)]
 
 
-class Status(enum.Enum):
-    ok = "ОК"
-    not_ok = "НЕ ОК"
+class InputData(Base):
+    __tablename__ = "input_table"
+
+    id: Mapped[intpk]
+    process_name: Mapped[str_100]
+    action_description: Mapped[str_512]
+    telegram_username: Mapped[str_50]
+    interval: Mapped[IntervalType]  # Возможные варианты запуска (Каждый день, раз в месяц, разовое выполнение)
+
+    completion_day: Mapped[str_50] = mapped_column(nullable=True)  # День когда запускать процесс
+    scheduled_time: Mapped[datetime.datetime]  # Время отправки сообщения об процессе
 
 
-# Модели таблиц
+class Actions(Base):
+    __tablename__ = "actions"
 
-class TaskEntry(Base):
-    __tablename__ = 'task_entries'
+    id: Mapped[intpk]
+    input_data_id: Mapped[int | None] = mapped_column(
+        ForeignKey('input_table.id', ondelete="SET NULL"))  # Ссылка на действие из входной таблицы
 
-    entry_id: Mapped[intpk]  # уникальный идентификатор записи
-    process_name: Mapped[str_100]  # имя процесса
-    action_description: Mapped[str_512]  # описание действия
-    employee_telegram: Mapped[str_50]  # телеграм сотрудника
+    employee_id: Mapped[int] = mapped_column(ForeignKey('employees.id'))  # Ссылка на сотрудника из таблицы сотрудников
 
-    scheduled_time: Mapped[datetime.datetime]  # время, когда нужно отправить сообщение сотруднику
+    status: Mapped[ActionStatus] = mapped_column(default=ActionStatus.queued_to_be_added)
+
+    actual_time_message: Mapped[datetime.datetime] = mapped_column(nullable=True)
+
+    input_table = relationship("InputData")
+    employee = relationship("Employees")
 
 
-class Employee(Base):
+class Employees(Base):
     __tablename__ = 'employees'
 
-    employee_id: Mapped[intpk]  # уникальный идентификатор сотрудника
-    telegram_username: Mapped[str_50]  # username телеграмма сотрудника
+    id: Mapped[intpk]
+    name: Mapped[str_50] = mapped_column(nullable=True)
+    telegram_username: Mapped[str_50]  # username в телеграмме сотрудника
     telegram_id: Mapped[str_50]  # идентификатор телеграмма сотрудника
-    name: Mapped[str_50] = mapped_column(nullable=True)  # имя сотрудника
+    status: Mapped[EmployeesStatus] = mapped_column(default=EmployeesStatus.available)
 
 
-class Process(Base):
-    __tablename__ = 'processes'
+class EmployeesContact(Base):
+    __tablename__ = "employees_contact"
 
-    process_id: Mapped[intpk]  # уникальный идентификатор процесса
-    process_name: Mapped[str_100]  # имя процесса
-    action_description: Mapped[str_512]  # описание действия
-
-    employee_id: Mapped[int] = mapped_column(ForeignKey('employees.employee_id'),
-                                             nullable=False)  # идентификатор сотрудника, ответственного за процесc
-
-    scheduled_time: Mapped[datetime.datetime]  # время, когда нужно отправить сообщение сотруднику
-
-    employee = relationship('Employee')
+    id: Mapped[intpk]
+    phone_number: Mapped[str_20]
+    fullname: Mapped[str_100]
 
 
-class Notification(Base):
-    __tablename__ = 'notifications'
+class Report(Base):
+    __tablename__ = "report_table"
 
-    notification_id: Mapped[intpk]  # уникальный идентификатор уведомления
+    id: Mapped[intpk]
+    action_id: Mapped[int | None] = mapped_column(
+        ForeignKey('actions.id', ondelete="SET NULL"))  # Ссылка на действие из таблицы действий
+    employee_id: Mapped[int | None] = mapped_column(
+        ForeignKey('employees.id', ondelete="SET NULL"))  # Ссылка на сотрудника из таблицы сотрудников
 
-    process_id: Mapped[int] = mapped_column(ForeignKey('processes.process_id'))  # идентификатор процесса
+    expected_dispatch_time: Mapped[datetime.datetime]
+    actual_dispatch_time: Mapped[datetime.datetime]
+    employee_response_time: Mapped[datetime.datetime]
+    elapsed_time: Mapped[datetime.timedelta] = mapped_column(Interval)
 
-    employee_id: Mapped[int] = mapped_column(
-        ForeignKey('employees.employee_id'))  # идентификатор сотрудника, получившего уведомление
+    status: Mapped[FinalStatus]
+    comment: Mapped[str_512]
 
-    sent_time: Mapped[datetime.datetime] = mapped_column(DateTime, default=func.now())  # время отправки уведомления
-    response_time: Mapped[datetime.datetime]  # время ответа
-    response_status: Mapped[Status]  # статус ответа
-    comment: Mapped[str_512] = mapped_column(nullable=True)  # комментарий сотрудника
-    response_duration: Mapped[datetime.datetime]  # время, потраченное на ответ
-
-    process = relationship('Process')
-    employee = relationship('Employee')
+    actions = relationship("Actions")
+    employee = relationship("Employees")
