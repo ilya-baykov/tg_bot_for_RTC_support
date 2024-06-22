@@ -51,6 +51,7 @@ class ActionsUpdater:
 
             if action_obj:
                 # Обновляем время запуска у действия
+                time = time.replace(microsecond=0)
                 action_obj.actual_time_message = time
 
                 logger.info(f"Для задачи №{action.id} установлено время запуск: {time}")
