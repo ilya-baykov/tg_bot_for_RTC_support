@@ -41,7 +41,7 @@ async def check_user_response(user_telegram_id: str):
         if sent_process:
             return employee, sent_process
         else:
-            return employee
+            return employee, None
     return None, None
 
 
@@ -116,6 +116,11 @@ async def write_user_comment(message: Message, state: FSMContext):
                                             comment=message.text)
     await state.set_state(UserResponse.wait_message)
     await message.answer(text_message)
+
+
+@user_answer.message()
+async def unknown_response(message: Message):
+    await message.answer("Неизвестная команда")
 
 
 def register_user_response(dp):
