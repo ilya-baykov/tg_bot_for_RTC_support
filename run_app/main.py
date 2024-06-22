@@ -21,7 +21,7 @@ async def preparation_for_launch():
 
     # await db.reset_database()  # Очищает БД
     # await db.create_db()  # Создает все модели в БД
-    await ActionsTodayCreator().create_new_action()  # Считываем входную таблицу и формируем актуальные задачи
+    await ActionsTodayCreator().create_new_actions()  # Считываем входную таблицу и формируем актуальные задачи
 
     pending_actions = await ActionsTodayReader().get_pending_actions()  # Получаем все задачи, ожидающие отправки
 

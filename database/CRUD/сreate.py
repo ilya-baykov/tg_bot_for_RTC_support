@@ -1,4 +1,7 @@
 import logging
+import calendar
+
+from datetime import date
 
 from database.CRUD.update import EmployeesUpdater
 from run_app.main_objects import db
@@ -50,7 +53,8 @@ class ActionsTodayCreator:
             busy_employees = {}  # Словарь 'занятых' сотрудников
 
             for task in tasks:
-                await ActionsTodayCreator.process_task(task, busy_employees, session)
+                if await ActionsTodayCreator.is_perform_today(day_of_action=task.completion_day):
+                    await ActionsTodayCreator.process_task(task, busy_employees, session)
 
     @staticmethod
     async def create_action(task, employee, status, session):
@@ -62,6 +66,20 @@ class ActionsTodayCreator:
         ))
         await session.commit()
         logger.info(f"Задача {task.process_name} была добавлена со статусом {status}")
+
+    @staticmethod
+    async def is_perform_today(day_of_action: str | None) -> bool:
+        # Если день выполнения не указан - выполнять каждый день
+        if day_of_action is None:
+            return True
+
+        today_date = date.today()  # Получаем текущую дату
+        if day_of_action == "последний":
+            # Получаем количество дней в этом месяце
+            last_day_month = calendar.monthrange(today_date.year, today_date.month)[1]
+            return int(day_of_action) == last_day_month
+
+        return int(day_of_action) == today_date.day
 
     @staticmethod
     async def process_task(task, busy_employees, session):
