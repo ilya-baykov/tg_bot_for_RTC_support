@@ -1,8 +1,6 @@
 import logging
 import calendar
-
-from datetime import date
-from typing import re
+import re
 
 from database.CRUD.update import EmployeesUpdater
 from run_app.main_objects import db
