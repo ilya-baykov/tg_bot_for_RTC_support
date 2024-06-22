@@ -1,6 +1,6 @@
 import datetime
 import logging
-from database.models import Actions
+from database.models import ActionsToday
 
 from run_app.main_objects import db
 
@@ -25,13 +25,13 @@ class EmployeesUpdater:
             await request.commit()
 
 
-class ActionsUpdater:
+class ActionsTodayUpdater:
     @staticmethod
     async def update_status(action, status):
         """Изменяет статус действия"""
         async with db.Session() as request:
             # Получаем объект действия из базы данных
-            action_obj = await request.get(Actions, action.id)
+            action_obj = await request.get(ActionsToday, action.id)
 
             if action_obj:
                 # Обновляем статус действия
@@ -47,7 +47,7 @@ class ActionsUpdater:
     async def update_actual_time_message(action, time: datetime.datetime):
         """Устанавливает или изменяет время запуска задачи (отправки сообщения)"""
         async with db.Session() as request:
-            action_obj = await request.get(Actions, action.id)
+            action_obj = await request.get(ActionsToday, action.id)
 
             if action_obj:
                 # Обновляем время запуска у действия

@@ -2,10 +2,10 @@ import asyncio
 import logging
 import platform
 
-from main_objects import start_scheduler, scheduler
+from main_objects import start_scheduler, scheduler, db
 from run_app.bot_running import start_bot
-from database.CRUD.read import ActionsReader, EmployeesReader
-from database.CRUD.сreate import ActionsCreator
+from database.CRUD.read import ActionsTodayReader, EmployeesReader
+from database.CRUD.сreate import ActionsTodayCreator
 from sent_task_to_emploeyee.sending_messages import add_task_scheduler
 
 logging.basicConfig(level=logging.INFO)
@@ -21,9 +21,9 @@ async def preparation_for_launch():
 
     # await db.reset_database()  # Очищает БД
     # await db.create_db()  # Создает все модели в БД
-    await ActionsCreator().create_new_action()  # Считываем входную таблицу и формируем актуальные задачи
+    await ActionsTodayCreator().create_new_action()  # Считываем входную таблицу и формируем актуальные задачи
 
-    pending_actions = await ActionsReader().get_pending_actions()  # Получаем все задачи, ожидающие отправки
+    pending_actions = await ActionsTodayReader().get_pending_actions()  # Получаем все задачи, ожидающие отправки
 
     for action in pending_actions:
         await add_task_scheduler(scheduler=scheduler, action_task=action)  # Передаем задачи в планировщик
