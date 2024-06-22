@@ -85,7 +85,6 @@ class InputTableReader:
             query = (
 
                 select(InputData)
-                .filter(InputData.scheduled_time > datetime.datetime.now())
                 .order_by(asc(InputData.scheduled_time))
 
             )

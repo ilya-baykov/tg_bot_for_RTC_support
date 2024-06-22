@@ -3,6 +3,7 @@ from os import environ
 
 from aiogram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
 from database.DataBase import DataBase
 
 logging.basicConfig(level=logging.INFO)
