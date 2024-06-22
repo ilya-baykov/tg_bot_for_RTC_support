@@ -2,6 +2,7 @@ import logging
 import calendar
 
 from datetime import date
+from typing import re
 
 from database.CRUD.update import EmployeesUpdater
 from run_app.main_objects import db
@@ -69,17 +70,34 @@ class ActionsTodayCreator:
 
     @staticmethod
     async def is_perform_today(day_of_action: str | None) -> bool:
-        # Если день выполнения не указан - выполнять каждый день
         if day_of_action is None:
             return True
 
-        today_date = date.today()  # Получаем текущую дату
-        if day_of_action == "последний":
+        today_date = datetime.today().date()  # Получаем текущую дату без времени
+
+        if day_of_action.lower() == "последний":
             # Получаем количество дней в этом месяце
             last_day_month = calendar.monthrange(today_date.year, today_date.month)[1]
-            return int(day_of_action) == last_day_month
+            return today_date.day == last_day_month
 
-        return int(day_of_action) == today_date.day
+        # Проверяем формат "год-месяц-день" (например, "2024-06-22")
+        date_pattern = re.compile(r'^\d{4}-\d{2}-\d{2}$')
+        if date_pattern.match(day_of_action):
+            try:
+                action_date = datetime.strptime(day_of_action, '%Y-%m-%d').date()
+                return action_date == today_date
+            except ValueError:
+                pass
+
+        # Проверяем числовой день месяца (например, "17")
+        try:
+            day_number = int(day_of_action)
+            return day_number == today_date.day
+        except ValueError:
+            pass
+
+        # Если ни один из вышеописанных случаев не сработал, возвращаем False
+        return False
 
     @staticmethod
     async def process_task(task, busy_employees, session):

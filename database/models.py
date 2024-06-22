@@ -62,7 +62,7 @@ class Report(Base):
 
     id: Mapped[intpk]
     action_id: Mapped[int | None] = mapped_column(
-        ForeignKey('actions.id', ondelete="SET NULL"))  # Ссылка на действие из таблицы действий
+        ForeignKey('actions_today.id', ondelete="SET NULL"))  # Ссылка на действие из таблицы действий
     employee_id: Mapped[int | None] = mapped_column(
         ForeignKey('employees.id', ondelete="SET NULL"))  # Ссылка на сотрудника из таблицы сотрудников
 
@@ -74,29 +74,5 @@ class Report(Base):
     status: Mapped[FinalStatus]
     comment: Mapped[str_512]
 
-    actions = relationship("Actions")
+    actions = relationship("ActionsToday")
     employee = relationship("Employees")
-
-#
-# class ActionsDaily(Base):
-#     __tablename__ = "actions_daily"
-#
-#     id: Mapped[intpk]
-#     input_data_id: Mapped[int | None] = mapped_column(
-#         ForeignKey('input_table.id', ondelete="SET NULL"))  # Ссылка на действие из входной таблицы
-#
-#
-# class ActionsMonthly(Base):
-#     __tablename__ = "actions_monthly"
-#
-#     id: Mapped[intpk]
-#     input_data_id: Mapped[int | None] = mapped_column(
-#         ForeignKey('input_table.id', ondelete="SET NULL"))  # Ссылка на действие из входной таблицы
-#
-#
-# class ActionsOneTme(Base):
-#     __tablename__ = "actions_one_time"
-#
-#     id: Mapped[intpk]
-#     input_data_id: Mapped[int | None] = mapped_column(
-#         ForeignKey('input_table.id', ondelete="SET NULL"))  # Ссылка на действие из входной таблицы
