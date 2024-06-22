@@ -47,7 +47,15 @@ class ActionsUpdater:
     async def update_actual_time_message(action, time: datetime.datetime):
         """Устанавливает или изменяет время запуска задачи (отправки сообщения)"""
         async with db.Session() as request:
-            action = await request.merge(action)
-            action.actual_time_message = time
-            logger.info(f"Для задачи №{action.id} установлено время запуск: {time}")
-            await request.commit()
+            action_obj = await request.get(Actions, action.id)
+
+            if action_obj:
+                # Обновляем время запуска у действия
+                action_obj.actual_time_message = time
+
+                logger.info(f"Для задачи №{action.id} установлено время запуск: {time}")
+
+                # Сохраняем изменения
+                await request.commit()
+            else:
+                logger.warning(f"Действие с ID {action.id} не найдено в базе данных.")

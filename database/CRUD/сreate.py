@@ -58,6 +58,7 @@ class ActionsCreator:
                     # Если пользователь в словаре занятых сотрудников, то делаем задачу со статусом "ожидает добавления"
                     if task.telegram_username in busy_employee:
                         status = ActionStatus.queued_to_be_added
+                        employee = busy_employee[task.telegram_username]
 
                     # Иначе - добавляем пользователя в список занятых сотрудников
                     else:

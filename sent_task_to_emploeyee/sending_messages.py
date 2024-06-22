@@ -38,10 +38,17 @@ async def add_task_scheduler(scheduler, action_task: Actions):
         logger.info(f"Действие: №{action_task.id} был добавлен в планировшик. Время выполнения: {scheduled_time}")
         scheduler.add_job(sent_message, trigger='date', run_date=scheduled_time,
                           kwargs={"action_task": action_task, "input_data_task": input_data_task})
+
     # elif Если тип интервала - ежедневно:
     #     pass
     # elif Если тип интервала - ежемесячно:
     #      pass
+
+    if not scheduler.running:
+        scheduler.start()
+        logger.info(f"Планировщик заданий {scheduler} запущен")
+    else:
+        logger.info("Планировщик уже был запущен")
 
 
 async def sent_message(action_task: Actions, input_data_task: InputData):

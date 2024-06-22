@@ -15,4 +15,6 @@ bot = Bot(token=environ.get('TOKEN', 'define me!'))
 
 async def start_scheduler(scheduler):
     scheduler.start()
-    logger.info(f"Планировщик заданий {scheduler} запущен ")
+    logger.info(f"Планировщик заданий {scheduler} запущен")
+    scheduler.remove_all_jobs()  # Очистка предыдущих задач
+    logger.info("Все предыдущие задачи планировщика были удалены")
