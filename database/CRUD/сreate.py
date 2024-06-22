@@ -71,7 +71,7 @@ class ActionsTodayCreator:
         if day_of_action is None:
             return True
 
-        today_date = datetime.today().date()  # Получаем текущую дату без времени
+        today_date = datetime.datetime.now().date()  # Получаем текущую дату без времени
 
         if day_of_action.lower() == "последний":
             # Получаем количество дней в этом месяце
@@ -82,7 +82,7 @@ class ActionsTodayCreator:
         date_pattern = re.compile(r'^\d{4}-\d{2}-\d{2}$')
         if date_pattern.match(day_of_action):
             try:
-                action_date = datetime.strptime(day_of_action, '%Y-%m-%d').date()
+                action_date = datetime.datetime.strptime(day_of_action, '%Y-%m-%d').date()
                 return action_date == today_date
             except ValueError:
                 pass
