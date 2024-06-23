@@ -1,3 +1,5 @@
+import re
+
 from aiogram import Router, F
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
@@ -25,7 +27,9 @@ async def start_register_user(message: Message, state: FSMContext):
 
 @start_router.message(UserRegistration.input_phone, F.contact, IsTrueContact())
 async def take_true_contact(message: Message, state: FSMContext):
-    phone = message.contact.phone_number.replace("+7", "8")
+    # Приводим номер к единому формату
+    phone = re.sub(r'^\+?7', '8', message.contact.phone_number)
+
     employee = await employees_reader.get_employee_by_phone(phone_number=phone)
     if employee:
         await EmployeesCreator().create_new_employees(name=employee.fullname,
