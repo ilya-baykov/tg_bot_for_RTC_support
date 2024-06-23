@@ -1,5 +1,5 @@
 import logging
-import datetime
+from datetime import datetime, timedelta
 from typing import Tuple, Union
 
 from aiogram import Router, F
@@ -66,19 +66,19 @@ class ActionManager:
         """Создает новую строку в результирующей таблице"""
         employee, sent_process = await ActionManager.check_user_response(user_telegram_id)
         if employee and sent_process:
-            current_time = datetime.datetime.now()
+            current_time = datetime.now()
 
             task_from_input_table = await input_table_reader.get_input_task_by_id(sent_process.input_data_id)
             actual_dispatch_time = sent_process.actual_time_message
 
             time_difference = current_time - actual_dispatch_time
-            time_difference_without_microseconds = time_difference - datetime.timedelta(
+            time_difference_without_microseconds = time_difference - timedelta(
                 microseconds=time_difference.microseconds)
 
             await report_creator.create_new_report(
                 action_id=sent_process.id,
                 employee_id=employee.id,
-                expected_dispatch_time=task_from_input_table.scheduled_time,
+                expected_dispatch_time=datetime.combine(datetime.today(), task_from_input_table.scheduled_time),
                 actual_dispatch_time=actual_dispatch_time,
                 employee_response_time=current_time,
                 elapsed_time=time_difference_without_microseconds,

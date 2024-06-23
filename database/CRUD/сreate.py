@@ -123,9 +123,9 @@ class ActionsTodayCreator:
             employee = busy_employees[task.telegram_username]
             status = ActionStatus.queued_to_be_added
         else:
-            employee = await employees_reader.get_employee_by_telegram_id_or_username(task.telegram_username)
+            employee = await employees_reader.get_employee_by_telegram_id_or_username(
+                telegram_username=task.telegram_username)
             if not employee:
-                logger.warning(f"Сотрудник с telegram_username '{task.telegram_username}' не найден.")
                 return None, None
 
             busy_employees[task.telegram_username] = employee

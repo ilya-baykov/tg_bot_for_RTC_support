@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import logging
 import platform
 
@@ -14,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 async def updating_daily_tasks():
     """Функция, которая будет запускаться каждый день для формирования актуальных задач"""
+    logger.info(f"Ежедненвые задачи обновлены в  {datetime.datetime.now()}")
     await ActionsTodayCreator().create_new_actions()  # Считываем входную таблицу и формируем актуальные задачи
 
     pending_actions = await ActionsTodayReader().get_pending_actions()  # Получаем все задачи, ожидающие отправки
@@ -24,13 +26,13 @@ async def updating_daily_tasks():
 
 async def preparation_for_launch():
     # await db.reset_database()  # Очищает БД
-    # await db.create_db()  # Создает все модели в БД
+    await db.create_db()  # Создает все модели в БД
 
     await start_scheduler(scheduler)  # Запуск планировщика заданий
     await updating_daily_tasks()  # Формирование актуальных задач
 
     # Добавляем задачу, которая будет выполняться каждый день в 00:00:00
-    await scheduler.add_job(updating_daily_tasks, trigger="cron", hour=0, minute=0, second=0)
+    scheduler.add_job(updating_daily_tasks, trigger="cron", hour=0, minute=0, second=0)
 
     await start_bot()
 

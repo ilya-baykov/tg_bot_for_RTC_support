@@ -31,32 +31,26 @@ def check_scheduler(scheduler):
 async def add_task_scheduler(scheduler, action_task: ActionsToday):
     check_scheduler(scheduler)
     input_data_task = await InputTableReader().get_input_task_by_id(action_task.input_data_id)
-    interval_type = input_data_task.interval
+    scheduled_time = input_data_task.scheduled_time
 
-    if interval_type == IntervalType.разово:
-        current_time = datetime.now()
-        scheduled_time = input_data_task.scheduled_time
+    # Преобразуем время в объекты datetime
+    scheduled_datetime = datetime.combine(datetime.today(), scheduled_time)
+    current_datetime = datetime.now()
 
-        if current_time > scheduled_time:
-            scheduled_time = current_time + timedelta(seconds=5)
+    # Увеличиваем текущее время на 5 секунд, если текущее время больше запланированного
+    if current_datetime > scheduled_datetime:
+        scheduled_datetime = current_datetime + timedelta(seconds=5)
+        scheduled_time = scheduled_datetime.time()
+        logger.info(
+            f"Время отправки действия: №{action_task.id} было изменено с {input_data_task.scheduled_time}"
+            f" на scheduled_time")
 
-            logger.info(
-                f"Время отправки действия: №{action_task.id} было изменено с {input_data_task.scheduled_time}"
-                f" на {scheduled_time}")
+    # Обновляем время отправки сообщения
+    await actions_today_updater.update_actual_time_message(action=action_task, time=scheduled_time)
 
-        # Обновляем время отправки сообщения
-        await actions_today_updater.update_actual_time_message(action=action_task, time=scheduled_time)
-
-        logger.info(f"Действие: №{action_task.id} был добавлен в планировшик. Время выполнения: {scheduled_time}")
-        # scheduler.add_job(sent_message, trigger='date', run_date=scheduled_time,
-        #                   kwargs={"action_task": action_task, "input_data_task": input_data_task})
-        scheduler.add_job(sent_message_with_retry, trigger='date', run_date=scheduled_time,
-                          kwargs={"action_task": action_task, "input_data_task": input_data_task})
-
-    # elif Если тип интервала - ежедневно:
-    #     pass
-    # elif Если тип интервала - ежемесячно:
-    #      pass
+    logger.info(f"Действие: №{action_task.id} был добавлен в планировшик. Время выполнения: {scheduled_time}")
+    scheduler.add_job(sent_message_with_retry, trigger='date', run_date=scheduled_datetime,
+                      kwargs={"action_task": action_task, "input_data_task": input_data_task})
 
 
 async def sent_message_with_retry(action_task: ActionsToday, input_data_task: InputData, retries=3, delay=5):
