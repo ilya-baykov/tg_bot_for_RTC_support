@@ -1,4 +1,6 @@
+import asyncio
 import logging
+import sys
 from os import environ
 
 from aiogram import Bot
@@ -15,7 +17,10 @@ bot = Bot(token=environ.get('TOKEN', 'define me!'))
 
 
 async def start_scheduler(scheduler):
+    if scheduler.running:
+        scheduler.shutdown(wait=False)  # Закрываем прошлый планировщик задач
+        logger.info("Прошлые задачи планировщика были очищены")
+
     scheduler.start()
     logger.info(f"Планировщик заданий {scheduler} запущен")
-    scheduler.remove_all_jobs()  # Очистка предыдущих задач
     logger.info("Все предыдущие задачи планировщика были удалены")

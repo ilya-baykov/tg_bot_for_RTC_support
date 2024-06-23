@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 async def updating_daily_tasks():
     """Функция, которая будет запускаться каждый день для формирования актуальных задач"""
-    logger.info(f"Ежедненвые задачи обновлены в  {datetime.datetime.now()}")
+    logger.info(f"Ежедненвые задачи обновлены в {datetime.datetime.now()}")
     await ActionsTodayCreator().create_new_actions()  # Считываем входную таблицу и формируем актуальные задачи
 
     pending_actions = await ActionsTodayReader().get_pending_actions()  # Получаем все задачи, ожидающие отправки
