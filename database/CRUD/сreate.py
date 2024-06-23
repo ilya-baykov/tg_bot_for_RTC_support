@@ -1,9 +1,11 @@
 import logging
+import calendar
+import re
 
 from database.CRUD.update import EmployeesUpdater
 from run_app.main_objects import db
 from database.models import *
-from database.CRUD.read import EmployeesReader, InputTableReader, ActionsReader
+from database.CRUD.read import EmployeesReader, InputTableReader, ActionsTodayReader
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -11,7 +13,7 @@ logger = logging.getLogger(__name__)
 employees_reader = EmployeesReader()
 input_table_reader = InputTableReader()
 employees_updater = EmployeesUpdater()
-actions_reader = ActionsReader()
+actions_today_reader = ActionsTodayReader()
 
 
 class EmployeesCreator:
@@ -40,57 +42,102 @@ class EmployeesCreator:
                 await request.commit()
 
 
-class ActionsCreator:
+class ActionsTodayCreator:
+
     @staticmethod
-    async def create_new_action():
+    async def create_new_actions():
         """Формируем актуальные задачи из исходной таблицы """
-        async with db.Session() as request:
+        async with db.Session() as session:
             tasks = await input_table_reader.get_all_actions()  # Получаем список всех задач из входной таблицы
-            busy_employee = {}  # Словарь 'занятых' сотрудниклв
+            busy_employees = {}  # Словарь 'занятых' сотрудников
+
             for task in tasks:
+                if await ActionsTodayCreator.is_perform_today(day_of_action=task.completion_day):
+                    await ActionsTodayCreator.process_task(task, busy_employees, session)
 
-                # Проверка нахождения задачи в таблице actions (по ключу из входной таблицы)
-                availability_check = await actions_reader.get_action(task.id)
-                if availability_check:
-                    logger.info(f"Задача {task.id} уже была создана.")
-                else:
+    @staticmethod
+    async def create_action(task, employee, status, session):
+        """Создание новой задачи"""
+        session.add(ActionsToday(
+            input_data_id=task.id,
+            employee_id=employee.id,
+            status=status
+        ))
+        await session.commit()
+        logger.info(f"Задача {task.process_name} была добавлена со статусом {status}")
 
-                    # Если пользователь в словаре занятых сотрудников, то делаем задачу со статусом "ожидает добавления"
-                    if task.telegram_username in busy_employee:
-                        status = ActionStatus.queued_to_be_added
-                        employee = busy_employee[task.telegram_username]
+    @staticmethod
+    async def is_perform_today(day_of_action: str | None) -> bool:
+        if day_of_action is None:
+            return True
 
-                    # Иначе - добавляем пользователя в список занятых сотрудников
-                    else:
-                        # Получаем сотрудника из БД
-                        employee = await employees_reader.get_employee_by_telegram_id_or_username(
-                            telegram_username=task.telegram_username)
-                        if employee:
-                            # Добавляем сотрудника в словарь занятых
-                            busy_employee[task.telegram_username] = employee
+        today_date = datetime.datetime.now().date()  # Получаем текущую дату без времени
 
-                            # Получаем количество задач у сотрудника
-                            employee_quantity_tasks = await employees_reader.get_all_employee_tasks(
-                                employee_id=employee.id)
+        if day_of_action.lower() == "последний":
+            # Получаем количество дней в этом месяце
+            last_day_month = calendar.monthrange(today_date.year, today_date.month)[1]
+            return today_date.day == last_day_month
 
-                            # Устанавливаем соответствующий статус процессу исходя из количества действий у сотрудника
-                            if len(employee_quantity_tasks) > 0:
-                                status = ActionStatus.queued_to_be_added
-                            else:
-                                status = ActionStatus.waiting_to_be_sent
-                        else:
-                            logger.warning(f"Сотрудник с telegram_username '{task.telegram_username}' не найден.")
-                            continue
+        # Проверяем формат "год-месяц-день" (например, "2024-06-22")
+        date_pattern = re.compile(r'^\d{4}-\d{2}-\d{2}$')
+        if date_pattern.match(day_of_action):
+            try:
+                action_date = datetime.datetime.strptime(day_of_action, '%Y-%m-%d').date()
+                return action_date == today_date
+            except ValueError:
+                pass
 
-                    # Создаем новый процесс
-                    request.add(Actions(
-                        input_data_id=task.id,
-                        employee_id=employee.id,
-                        status=status
-                    ))
+        # Проверяем числовой день месяца (например, "17")
+        try:
+            day_number = int(day_of_action)
+            return day_number == today_date.day
+        except ValueError:
+            pass
 
-                    await request.commit()
-                    logger.info(f"Задача {task.process_name} была добавлена со статусом {status}")
+        # Если ни один из вышеописанных случаев не сработал, возвращаем False
+        return False
+
+    @staticmethod
+    async def process_task(task, busy_employees, session):
+        """Обрабатываем задачу"""
+        if await ActionsTodayCreator.is_task_already_created(task):
+            logger.info(f"Задача {task.id} уже была создана.")
+            return
+
+        employee, status = await ActionsTodayCreator.assign_employee_and_status(task, busy_employees)
+        if not employee:
+            logger.warning(f"Сотрудник с telegram_username '{task.telegram_username}' не найден.")
+            return
+
+        await ActionsTodayCreator.create_action(task, employee, status, session)
+
+    @staticmethod
+    async def is_task_already_created(task):
+        """Проверка наличия задачи в таблице actions"""
+        return await actions_today_reader.get_action(task.id) is not None
+
+    @staticmethod
+    async def assign_employee_and_status(task, busy_employees):
+        """Назначение сотрудника и статуса задачи"""
+        if task.telegram_username in busy_employees:
+            employee = busy_employees[task.telegram_username]
+            status = ActionStatus.queued_to_be_added
+        else:
+            employee = await employees_reader.get_employee_by_telegram_id_or_username(
+                telegram_username=task.telegram_username)
+            if not employee:
+                return None, None
+
+            busy_employees[task.telegram_username] = employee
+            status = await ActionsTodayCreator.determine_status(employee)
+
+        return employee, status
+
+    @staticmethod
+    async def determine_status(employee):
+        """Определение статуса задачи на основе количества задач у сотрудника"""
+        tasks_count = await employees_reader.get_all_employee_tasks(employee.id)
+        return ActionStatus.queued_to_be_added if len(tasks_count) > 0 else ActionStatus.waiting_to_be_sent
 
 
 class ReportCreator:

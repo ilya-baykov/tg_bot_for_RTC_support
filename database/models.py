@@ -1,6 +1,6 @@
 import datetime
 from typing import Annotated
-from sqlalchemy import ForeignKey, Interval
+from sqlalchemy import ForeignKey, Interval, Time
 from sqlalchemy.orm import Mapped, relationship, mapped_column
 
 from database.Base import Base, str_20, str_50, str_100, str_512
@@ -19,11 +19,11 @@ class InputData(Base):
     interval: Mapped[IntervalType]  # Возможные варианты запуска (Каждый день, раз в месяц, разовое выполнение)
 
     completion_day: Mapped[str_50] = mapped_column(nullable=True)  # День когда запускать процесс
-    scheduled_time: Mapped[datetime.datetime]  # Время отправки сообщения об процессе
+    scheduled_time: Mapped[datetime.time] = mapped_column(Time)  # Время отправки сообщения об процессе
 
 
-class Actions(Base):
-    __tablename__ = "actions"
+class ActionsToday(Base):
+    __tablename__ = "actions_today"
 
     id: Mapped[intpk]
     input_data_id: Mapped[int | None] = mapped_column(
@@ -62,7 +62,7 @@ class Report(Base):
 
     id: Mapped[intpk]
     action_id: Mapped[int | None] = mapped_column(
-        ForeignKey('actions.id', ondelete="SET NULL"))  # Ссылка на действие из таблицы действий
+        ForeignKey('actions_today.id', ondelete="SET NULL"))  # Ссылка на действие из таблицы действий
     employee_id: Mapped[int | None] = mapped_column(
         ForeignKey('employees.id', ondelete="SET NULL"))  # Ссылка на сотрудника из таблицы сотрудников
 
@@ -74,5 +74,5 @@ class Report(Base):
     status: Mapped[FinalStatus]
     comment: Mapped[str_512]
 
-    actions = relationship("Actions")
+    actions = relationship("ActionsToday")
     employee = relationship("Employees")

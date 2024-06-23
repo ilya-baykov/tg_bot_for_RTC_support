@@ -69,7 +69,7 @@ class EmployeesReader:
     async def get_all_employee_tasks(employee_id: int) -> List:
         """Возвращает все текущие задачи сотрудника"""
         async with db.Session() as request:
-            query = select(Actions).filter_by(employee_id=employee_id)
+            query = select(ActionsToday).filter_by(employee_id=employee_id)
             result = await request.execute(query)
             tasks = result.scalars().all()
             logger.info(f"У сотрудника {employee_id} найдены такие задачи : {[task.id for task in tasks]}")
@@ -85,7 +85,6 @@ class InputTableReader:
             query = (
 
                 select(InputData)
-                .filter(InputData.scheduled_time > datetime.datetime.now())
                 .order_by(asc(InputData.scheduled_time))
 
             )
@@ -108,12 +107,12 @@ class InputTableReader:
             return input_data_task
 
 
-class ActionsReader:
+class ActionsTodayReader:
     @staticmethod
     async def get_action(input_data_id: int):
         """Получаем действия по идентификатору входной таблицы"""
         async with db.Session() as request:
-            query = select(Actions).filter_by(input_data_id=input_data_id)
+            query = select(ActionsToday).filter_by(input_data_id=input_data_id)
             result = await request.execute(query)
             task = result.scalar_one_or_none()
             if task:
@@ -126,7 +125,7 @@ class ActionsReader:
     async def get_pending_actions() -> List:
         """Возвращает список всех действий, ожидающих отправки сообщения """
         async with db.Session() as request:
-            query = select(Actions).filter_by(status=ActionStatus.waiting_to_be_sent)
+            query = select(ActionsToday).filter_by(status=ActionStatus.waiting_to_be_sent)
             result = await request.execute(query)
             tasks = result.scalars().all()
             logger.info(f"Действия ожидающие отправки:{[task.id for task in tasks]}")
@@ -137,7 +136,7 @@ class ActionsReader:
         """Возвращает список всех действий сотрудника со статусом 'отправлено' """
         async with db.Session() as request:
             query = (
-                select(Actions)
+                select(ActionsToday)
                 .filter_by(employee_id=employee_id, status=ActionStatus.sent)
             )
             result = await request.execute(query)
@@ -155,9 +154,9 @@ class ActionsReader:
         """Возвращает все задачи сотрудника со статусом 'В очереди на добавление в обработку' """
         async with db.Session() as request:
             query = (
-                select(Actions)
-                .join(InputData, Actions.input_data_id == InputData.id)
-                .filter(Actions.employee_id == employee_id, Actions.status == ActionStatus.queued_to_be_added)
+                select(ActionsToday)
+                .join(InputData, ActionsToday.input_data_id == InputData.id)
+                .filter(ActionsToday.employee_id == employee_id, ActionsToday.status == ActionStatus.queued_to_be_added)
                 .order_by(asc(InputData.scheduled_time))
             )
             result = await request.execute(query)
