@@ -3,6 +3,8 @@ import calendar
 import re
 from datetime import datetime
 
+from abc import ABC, abstractmethod
+
 from database.enums import IntervalType
 
 logging.basicConfig(level=logging.INFO)
@@ -19,51 +21,114 @@ DAYS_OF_WEEK_EN_RU = {
 }
 
 
+class DecisionFunc(ABC):
+    @abstractmethod
+    def make_decision(self) -> bool:
+        pass
+
+
 class ActionDecisionToday:
+    """Класс для принятия решения по задаче на текущий день."""
+
     def __init__(self, interval: IntervalType, day_of_action: str | None, task_id: int):
+        """
+        Инициализация объекта для принятия решения по задаче на текущий день.
+
+        Args:
+            interval (IntervalType): Тип интервала задачи.
+            day_of_action (str | None): День или дата, связанная с задачей.
+            task_id (int): Идентификатор задачи.
+        """
         self.interval = interval
         self.day_of_action = day_of_action
         self.task_id = task_id
-        self.current_time = datetime.now()
         self.decision_func = self.choose_decision_func()
 
-    def choose_decision_func(self):
-        return {
-            IntervalType.ежедневно: self.daily_tasks_decision(),
-            IntervalType.еженедельно: self.weekly_tasks_decision(),
-            IntervalType.ежемесячно: self.monthly_tasks_decision(),
-            IntervalType.разово: self.one_time_tasks_decision(),
-        }
+    def choose_decision_func(self) -> DecisionFunc:
+        """
+        Выбирает функцию для принятия решения на основе типа интервала задачи.
 
-    def daily_tasks_decision(self):
+        Returns:
+            Callable[[], bool]: Функция для принятия решения.
+        """
+        if self.interval == IntervalType.ежедневно:
+            return DailyDecision()
+        elif self.interval == IntervalType.еженедельно:
+            return WeeklyDecision(self.day_of_action)
+        elif self.interval == IntervalType.ежемесячно:
+            return MonthlyDecision(self.day_of_action)
+        elif self.interval == IntervalType.разово:
+            return OneTimeDecision(self.day_of_action)
+        else:
+            raise ValueError("Unsupported interval type")
+
+    def make_decision(self) -> bool:
+        """
+        Принимает решение на основе текущего времени и типа задачи.
+
+        Returns:
+            bool: Результат принятия решения (True или False).
+        """
+        return self.decision_func.make_decision()
+
+
+class DailyDecision(DecisionFunc):
+    """Класс для принятия решений для ежедневных задач."""
+
+    def make_decision(self) -> bool:
+        """Принимает решение для ежедневной задачи (всегда возвращает True)."""
         return True
 
-    def weekly_tasks_decision(self):
-        day_of_week_eng = self.current_time.strftime('%A')  # Получаем название дня недели
+
+class WeeklyDecision(DecisionFunc):
+    """Класс для принятия решений для еженедельных задач."""
+
+    def __init__(self, day_of_action: str):
+        self.day_of_action = day_of_action
+        self.current_time = datetime.now()
+
+    def make_decision(self) -> bool:
+        """Принимает решение для еженедельной задачи на основе текущего дня недели."""
+
+        day_of_week_eng = self.current_time.strftime('%A')
         return self.day_of_action.lower() in DAYS_OF_WEEK_EN_RU[day_of_week_eng.lower()]
 
-    def monthly_tasks_decision(self):
-        # Если день активации указан числом
-        if self.day_of_action.isdigit():
-            return self.day_of_action.isdigit() and int(self.day_of_action) == self.current_time.day
 
+class MonthlyDecision(DecisionFunc):
+    """Класс для принятия решений для ежемесячных задач."""
+
+    def __init__(self, day_of_action: str):
+        self.day_of_action = day_of_action
+        self.current_time = datetime.now()
+
+    def make_decision(self) -> bool:
+        """Принимает решение для ежемесячной задачи на основе текущей даты."""
+
+        if self.day_of_action.isdigit():
+            return int(self.day_of_action) == self.current_time.day
         elif self.day_of_action == "последний":
-            # Получаем количество дней в этом месяце
             last_day_month = calendar.monthrange(self.current_time.year, self.current_time.month)[1]
             return self.current_time.day == last_day_month
         else:
-            # Для ежемесячных задач с периодам выполнения (пример: c 12 по 29  в виде '12-29' )
             regex_pattern = r"\b([1-9]|[12][0-9]|3[01])\s*-\s*\b([1-9]|[12][0-9]|3[01])\b$"
             clean_day_of_action = re.sub(r'\s+', ' ', self.day_of_action.strip())
-            # Проверка правильности формата
             if re.match(regex_pattern, clean_day_of_action):
                 days_interval = clean_day_of_action.split("-")
                 if len(days_interval) == 2 and int(days_interval[0]) < int(days_interval[1]):
                     return int(days_interval[0]) < self.current_time.day < int(days_interval[1])
-
             return False
 
-    def one_time_tasks_decision(self):
+
+class OneTimeDecision(DecisionFunc):
+    """Класс для принятия решений для разовых задач."""
+
+    def __init__(self, day_of_action: str):
+        self.day_of_action = day_of_action
+        self.current_time = datetime.now()
+
+    def make_decision(self) -> bool:
+        """Принимает решение для разовой задачи на основе заданной даты."""
+
         regex_pattern = re.compile(r'^\d{4}-\d{2}-\d{2}$')
         if regex_pattern.match(self.day_of_action):
             try:
