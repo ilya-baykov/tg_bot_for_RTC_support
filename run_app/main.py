@@ -3,6 +3,7 @@ import datetime
 import logging
 import platform
 
+from database.CRUD.delete import ActionsTodayDeleter
 from main_objects import start_scheduler, scheduler, db
 from run_app.bot_running import start_bot
 from database.CRUD.read import ActionsTodayReader, EmployeesReader
@@ -15,8 +16,9 @@ logger = logging.getLogger(__name__)
 
 async def updating_daily_tasks():
     """Функция, которая будет запускаться каждый день для формирования актуальных задач"""
-    logger.info(f"Ежедненвые задачи обновлены в {datetime.datetime.now()}")
+    await ActionsTodayDeleter().clear_table()
     await ActionsTodayCreator().create_new_actions()  # Считываем входную таблицу и формируем актуальные задачи
+    logger.info(f"Ежедненвые задачи обновлены в {datetime.datetime.now()}")
 
     pending_actions = await ActionsTodayReader().get_pending_actions()  # Получаем все задачи, ожидающие отправки
 
