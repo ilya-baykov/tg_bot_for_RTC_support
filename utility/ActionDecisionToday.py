@@ -7,9 +7,6 @@ from abc import ABC, abstractmethod
 
 from database.enums import IntervalType
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 DAYS_OF_WEEK_EN_RU = {
     'monday': ('понедельник', 'пн'),
     'tuesday': ('вторник', 'вт'),
@@ -22,6 +19,11 @@ DAYS_OF_WEEK_EN_RU = {
 
 
 class DecisionFunc(ABC):
+
+    def __init__(self, day_of_action: str):
+        self.day_of_action = day_of_action
+        self.current_time = datetime.now()
+
     @abstractmethod
     def make_decision(self) -> bool:
         pass
@@ -30,18 +32,16 @@ class DecisionFunc(ABC):
 class ActionDecisionToday:
     """Класс для принятия решения по задаче на текущий день."""
 
-    def __init__(self, interval: IntervalType, day_of_action: str | None, task_id: int):
+    def __init__(self, interval: IntervalType, day_of_action: str | None):
         """
         Инициализация объекта для принятия решения по задаче на текущий день.
 
         Args:
             interval (IntervalType): Тип интервала задачи.
             day_of_action (str | None): День или дата, связанная с задачей.
-            task_id (int): Идентификатор задачи.
         """
         self.interval = interval
         self.day_of_action = day_of_action
-        self.task_id = task_id
         self.decision_func = self.choose_decision_func()
 
     def choose_decision_func(self) -> DecisionFunc:
@@ -52,7 +52,7 @@ class ActionDecisionToday:
             Callable[[], bool]: Функция для принятия решения.
         """
         if self.interval == IntervalType.ежедневно:
-            return DailyDecision()
+            return DailyDecision(self.day_of_action)
         elif self.interval == IntervalType.еженедельно:
             return WeeklyDecision(self.day_of_action)
         elif self.interval == IntervalType.ежемесячно:
@@ -83,10 +83,6 @@ class DailyDecision(DecisionFunc):
 class WeeklyDecision(DecisionFunc):
     """Класс для принятия решений для еженедельных задач."""
 
-    def __init__(self, day_of_action: str):
-        self.day_of_action = day_of_action
-        self.current_time = datetime.now()
-
     def make_decision(self) -> bool:
         """Принимает решение для еженедельной задачи на основе текущего дня недели."""
 
@@ -96,10 +92,6 @@ class WeeklyDecision(DecisionFunc):
 
 class MonthlyDecision(DecisionFunc):
     """Класс для принятия решений для ежемесячных задач."""
-
-    def __init__(self, day_of_action: str):
-        self.day_of_action = day_of_action
-        self.current_time = datetime.now()
 
     def make_decision(self) -> bool:
         """Принимает решение для ежемесячной задачи на основе текущей даты."""
@@ -121,10 +113,6 @@ class MonthlyDecision(DecisionFunc):
 
 class OneTimeDecision(DecisionFunc):
     """Класс для принятия решений для разовых задач."""
-
-    def __init__(self, day_of_action: str):
-        self.day_of_action = day_of_action
-        self.current_time = datetime.now()
 
     def make_decision(self) -> bool:
         """Принимает решение для разовой задачи на основе заданной даты."""
