@@ -1,11 +1,9 @@
-import logging
-import calendar
-import re
-
+from utility.ActionDecisionToday import ActionDecisionToday
 from database.CRUD.update import EmployeesUpdater
 from run_app.main_objects import db
 from database.models import *
 from database.CRUD.read import EmployeesReader, InputTableReader, ActionsTodayReader
+from utility.ActionDecisionToday import *
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -52,8 +50,11 @@ class ActionsTodayCreator:
             busy_employees = {}  # Словарь 'занятых' сотрудников
 
             for task in tasks:
-                if await ActionsTodayCreator.is_perform_today(day_of_action=task.completion_day):
+                if ActionDecisionToday(interval=task.interval, day_of_action=task.completion_day).make_decision():
+                    logger.info(f"Задача с ID:{task.id} будет добавлена в список действий на текущий день")
                     await ActionsTodayCreator.process_task(task, busy_employees, session)
+                else:
+                    logger.info(f"Задача с ID:{task.id} не будет добавлена в список действий на текущий день")
 
     @staticmethod
     async def create_action(task, employee, status, session):
@@ -65,37 +66,6 @@ class ActionsTodayCreator:
         ))
         await session.commit()
         logger.info(f"Задача {task.process_name} была добавлена со статусом {status}")
-
-    @staticmethod
-    async def is_perform_today(day_of_action: str | None) -> bool:
-        if day_of_action is None:
-            return True
-
-        today_date = datetime.datetime.now().date()  # Получаем текущую дату без времени
-
-        if day_of_action.lower() == "последний":
-            # Получаем количество дней в этом месяце
-            last_day_month = calendar.monthrange(today_date.year, today_date.month)[1]
-            return today_date.day == last_day_month
-
-        # Проверяем формат "год-месяц-день" (например, "2024-06-22")
-        date_pattern = re.compile(r'^\d{4}-\d{2}-\d{2}$')
-        if date_pattern.match(day_of_action):
-            try:
-                action_date = datetime.datetime.strptime(day_of_action, '%Y-%m-%d').date()
-                return action_date == today_date
-            except ValueError:
-                pass
-
-        # Проверяем числовой день месяца (например, "17")
-        try:
-            day_number = int(day_of_action)
-            return day_number == today_date.day
-        except ValueError:
-            pass
-
-        # Если ни один из вышеописанных случаев не сработал, возвращаем False
-        return False
 
     @staticmethod
     async def process_task(task, busy_employees, session):
