@@ -1,9 +1,10 @@
-from utility.ActionDecisionToday import ActionDecisionToday
+import logging
+from datetime import timedelta
 from database.CRUD.update import EmployeesUpdater
 from run_app.main_objects import db
 from database.models import *
 from database.CRUD.read import EmployeesReader, InputTableReader, ActionsTodayReader
-from utility.ActionDecisionToday import *
+from utility.ActionDecisionToday import ActionDecisionToday
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -112,9 +113,9 @@ class ActionsTodayCreator:
 
 class ReportCreator:
     @staticmethod
-    async def create_new_report(action_id: int, employee_id: int, expected_dispatch_time: datetime.datetime,
-                                actual_dispatch_time: datetime.datetime, employee_response_time: datetime.datetime,
-                                elapsed_time: datetime.timedelta, status: FinalStatus, comment: str):
+    async def create_new_report(action_id: int, employee_id: int, expected_dispatch_time: datetime,
+                                actual_dispatch_time: datetime, employee_response_time: datetime,
+                                elapsed_time: timedelta, status: FinalStatus, comment: str):
         async with db.Session() as request:
             request.add(Report(
                 action_id=action_id,
