@@ -163,3 +163,23 @@ class ActionsTodayReader:
             actions = result.scalars().all()
             logger.info(f"У сотрудника №{employee_id} есть такие задачи в очереди: {[action.id for action in actions]}")
             return actions
+
+
+class UserAccessReader:
+    @staticmethod
+    async def get_user(telegram_id: str) -> UserAccess | None:
+        """Возвращает пользователя из таблицы user_access или None"""
+        async with db.Session() as request:
+            query = select(UserAccess).filter_by(telegram_id=telegram_id)
+            result = await request.execute(query)
+            user = result.scalar_one_or_none()
+            return user
+
+    @staticmethod
+    async def is_block_user(telegram_id: str) -> UserAccess | None:
+        """Проверяет статус пользователя (заблокирован или нет)"""
+        async with db.Session() as request:
+            query = select(UserAccess).filter_by(telegram_id=telegram_id, user_status=UserStatus.blocked)
+            result = await request.execute(query)
+            verdict = result.scalar_one_or_none()
+            return verdict

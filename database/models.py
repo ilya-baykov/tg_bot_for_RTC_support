@@ -76,3 +76,11 @@ class Report(Base):
 
     actions = relationship("ActionsToday")
     employee = relationship("Employees")
+
+
+class UserAccess(Base):
+    __tablename__ = "user_access"
+    id: Mapped[intpk]
+    telegram_id: Mapped[str_50]  # идентификатор телеграмма сотрудника
+    user_status: Mapped[UserStatus] = mapped_column(default=UserStatus.available)  # Статус пользователя
+    number_of_attempts: Mapped[int] = mapped_column(default=0)  # Количество попыток авторизации

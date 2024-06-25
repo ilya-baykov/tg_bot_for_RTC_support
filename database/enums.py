@@ -1,6 +1,11 @@
 import enum
 
 
+class UserStatus(enum.Enum):
+    blocked = "заблокирован"
+    available = "досупен"
+
+
 class IntervalType(enum.Enum):
     ежедневно = "Каждый день"
     еженедельно = "Каждую неделю"

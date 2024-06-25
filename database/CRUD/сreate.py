@@ -1,9 +1,9 @@
 import logging
 from datetime import timedelta
-from database.CRUD.update import EmployeesUpdater
+from database.CRUD.update import EmployeesUpdater, UserAccessUpdater
 from run_app.main_objects import db
 from database.models import *
-from database.CRUD.read import EmployeesReader, InputTableReader, ActionsTodayReader
+from database.CRUD.read import EmployeesReader, InputTableReader, ActionsTodayReader, UserAccessReader
 from utility.ActionDecisionToday import ActionDecisionToday
 
 logging.basicConfig(level=logging.INFO)
@@ -129,3 +129,20 @@ class ReportCreator:
             ))
             await request.commit()
             logger.info(f"Добавлена запись в отчетную таблицу. № Действия {action_id} со статусом {status}")
+
+
+class UserAccessCreator:
+    @staticmethod
+    async def create_new_user(telegram_id: str):
+        async with db.Session() as request:
+            user = await UserAccessReader.get_user(telegram_id=telegram_id)
+            if user:
+                await UserAccessUpdater.update_number_of_attempts(user)
+            else:
+                request.add(UserAccess(
+                    telegram_id=telegram_id,
+                    number_of_attempts=1
+
+                ))
+                await request.commit()
+                logger.info(f"Добавлена запись о пользователе с telegram_id = {telegram_id}")
