@@ -5,19 +5,19 @@ from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, ChatPermissions
 
-from database.CRUD.update import UserAccessUpdater
+from ThrottlingMiddleware import ThrottlingMiddleware
 from database.CRUD.сreate import employees_reader, EmployeesCreator, UserAccessCreator
 from handlers.start.keyboard import keyboard
 from handlers.start.filter import IsTrueContact, UserInBanList
 from handlers.start.state import UserRegistration
 
 start_router = Router()
+start_router.message.middleware(ThrottlingMiddleware(limit=10))
 
-# Определяем разрешения, запрещающие пользователю отправлять сообщения
-permissions = ChatPermissions(can_send_messages=False)
+registration_router = Router()
 
 
-@start_router.message(UserInBanList())
+@registration_router.message(UserInBanList())
 async def block_user(message: Message):
     # Для игнорирования запросов от заблокированных пользователей
     pass
@@ -35,7 +35,7 @@ async def start_register_user(message: Message, state: FSMContext):
         await state.set_state(UserRegistration.input_phone)
 
 
-@start_router.message(UserRegistration.input_phone, F.contact, IsTrueContact())
+@registration_router.message(UserRegistration.input_phone, F.contact, IsTrueContact())
 async def take_true_contact(message: Message, state: FSMContext):
     # Создаем запись в таблице user_access
     await UserAccessCreator.create_new_user(telegram_id=str(message.from_user.id))
@@ -55,10 +55,11 @@ async def take_true_contact(message: Message, state: FSMContext):
             f"{message.contact.phone_number} - этот номер не найден в базе. ")
 
 
-@start_router.message(UserRegistration.input_phone, F.contact)
+@registration_router.message(UserRegistration.input_phone, F.contact)
 async def get_false_contact(message: Message):
     await message.answer("Это не ваш контакт")
 
 
 def register_start_handlers(dp):
     dp.include_router(start_router)
+    dp.include_router(registration_router)
