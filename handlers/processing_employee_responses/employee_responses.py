@@ -6,6 +6,7 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
+from ThrottlingMiddleware import ThrottlingMiddleware
 from database.CRUD.update import ActionsTodayUpdater
 from database.CRUD.сreate import employees_reader, actions_today_reader, input_table_reader, employees_updater, \
     ReportCreator
@@ -120,10 +121,16 @@ async def write_user_comment(message: Message, state: FSMContext):
     await message.answer(text_message)
 
 
-@user_answer.message()
+unknown_command = Router()
+unknown_command.message.middleware(ThrottlingMiddleware(limit=10))
+
+
+
+@unknown_command.message()
 async def unknown_response(message: Message):
     await message.answer("Неизвестная команда")
 
 
 def register_user_response(dp):
     dp.include_router(user_answer)
+    dp.include_router(unknown_command)
