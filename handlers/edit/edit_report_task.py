@@ -47,7 +47,7 @@ async def process_task_selection(callback_query: CallbackQuery, callback_data: T
     )
 
 
-@edit_router.message(EditState.on_edit, F.text == "Выполнено")
+@edit_router.message(EditState.on_edit, F.text.in_({"Выполнено", "Не выполнено"}))
 async def test(message: Message, state: FSMContext):
     await state.set_state(EditState.write_comment)
     await message.answer("Напиши комментарий")
