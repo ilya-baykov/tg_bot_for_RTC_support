@@ -31,7 +31,7 @@ async def preparation_for_launch():
     # await db.create_db()  # Создает все модели в БД
 
     await start_scheduler(scheduler)  # Запуск планировщика заданий
-    await updating_daily_tasks()  # Формирование актуальных задач
+    # await updating_daily_tasks()  # Формирование актуальных задач
 
     # Добавляем задачу, которая будет выполняться каждый день в 00:00:00
     scheduler.add_job(updating_daily_tasks, trigger="cron", hour=0, minute=0, second=0)
