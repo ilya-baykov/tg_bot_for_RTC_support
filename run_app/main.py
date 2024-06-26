@@ -6,7 +6,7 @@ import platform
 from database.CRUD.delete import ActionsTodayDeleter
 from main_objects import start_scheduler, scheduler, db
 from run_app.bot_running import start_bot
-from database.CRUD.read import ActionsTodayReader, EmployeesReader
+from database.CRUD.read import ActionsTodayReader
 from database.CRUD.сreate import ActionsTodayCreator
 from sent_task_to_emploeyee.sending_messages import add_task_scheduler
 

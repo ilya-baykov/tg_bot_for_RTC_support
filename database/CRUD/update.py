@@ -1,9 +1,8 @@
 import datetime
 import logging
 
-from database.CRUD.read import UserAccessReader
-from database.enums import UserStatus
-from database.models import ActionsToday, UserAccess
+from database.enums import UserStatus, SchedulerStatus
+from database.models import ActionsToday, UserAccess, SchedulerTasks
 
 from run_app.main_objects import db
 
@@ -110,7 +109,7 @@ class UserAccessUpdater:
 
             if user_obj:
                 # Проверяем количество попыток авторизации
-                if user_obj.number_of_attempts >=  3:
+                if user_obj.number_of_attempts >= 3:
                     # Обновляем статус действия
                     user_obj.user_status = UserStatus.blocked
                     logger.info(f"Пользователь с telegram_id = {user_obj.telegram_id} заблокирован")
@@ -132,3 +131,21 @@ class UserAccessUpdater:
             logger.info(f"У пользователя с telegram_id = {user.telegram_id}, было обновлено количество попыток")
             await request.commit()
             await UserAccessUpdater.update_user_status(user)
+
+
+class SchedulerTasksUpdater:
+    @staticmethod
+    async def update_params(task: SchedulerTasks, time: datetime.datetime | None = None,
+                            status: SchedulerStatus | None = None):
+        """В зависимости от параметров может изменять статус и время задачи в таблице scheduler_tasks"""
+        async with db.Session() as request:
+            task_obj = await request.get(SchedulerTasks, task.id)
+            if status:
+                task_obj.status = status
+                logger.info(f"У задачи {task_obj.id} был изменен статус на {status}")
+
+            if time:
+                task_obj.expected_completion_time = time
+                logger.info(f"У задачи {task_obj.id} было изменено ожидаемое время выполнения {time}")
+
+            await request.commit()

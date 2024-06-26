@@ -2,8 +2,8 @@ import enum
 
 
 class UserStatus(enum.Enum):
-    blocked = "заблокирован"
-    available = "досупен"
+    blocked = "Заблокирован"
+    available = "Досупен"
 
 
 class IntervalType(enum.Enum):
@@ -27,4 +27,10 @@ class EmployeesStatus(enum.Enum):
 
 class FinalStatus(enum.Enum):
     successfully = "Успешно"
-    failed = "провалено"
+    failed = "Провалено"
+
+
+class SchedulerStatus(enum.Enum):
+    awaiting_dispatch = "Ожидает отправки"
+    successfully = "Успешно выполнено"
+    suspended = "Приостановлено"

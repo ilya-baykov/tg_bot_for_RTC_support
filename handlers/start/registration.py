@@ -5,7 +5,7 @@ from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from Middlewares.ThrottlingMiddleware import ThrottlingMiddleware
+from middlewares.ThrottlingMiddleware import ThrottlingMiddleware
 from database.CRUD.сreate import employees_reader, EmployeesCreator, UserAccessCreator
 from handlers.start.keyboard import keyboard
 from handlers.start.filter import IsTrueContact, UserInBanList

@@ -183,3 +183,30 @@ class UserAccessReader:
             result = await request.execute(query)
             verdict = result.scalar_one_or_none()
             return verdict
+
+
+class SchedulerTasksReader:
+    @staticmethod
+    async def get_tasks(scheduler_task_id: str) -> SchedulerTasks | None:
+        """Возаращвает задачу из scheduler_tasks"""
+        async with db.Session() as request:
+            query = select(SchedulerTasks).filter_by(id=scheduler_task_id)
+            result = await request.execute(query)
+            task = result.scalar_one_or_none()
+            return task
+
+    @staticmethod
+    async def get_last_tasks_by_employee(employee_id: int) -> SchedulerTasks | None:
+        """Возвращает последнюю задачу конкретного сотрудника со статусом awaiting_dispatch"""
+        async with db.Session() as request:
+            query = (
+                select(SchedulerTasks)
+                .filter_by(employee_id=employee_id, status=SchedulerStatus.awaiting_dispatch)
+                .order_by(asc(SchedulerTasks.expected_completion_time))
+
+            )
+            result = await request.execute(query)
+            if result:
+                last_task = result.first()
+                return last_task
+            return None

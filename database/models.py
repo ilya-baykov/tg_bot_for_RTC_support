@@ -49,6 +49,19 @@ class Employees(Base):
     status: Mapped[EmployeesStatus] = mapped_column(default=EmployeesStatus.available)
 
 
+class SchedulerTasks(Base):
+    __tablename__ = 'scheduler_tasks'
+
+    id: Mapped[int]
+    employee_id: Mapped[int] = mapped_column(ForeignKey('employees.id'))  # Ссылка на сотрудника из таблицы сотрудников
+    status: Mapped[SchedulerStatus] = mapped_column(default=SchedulerStatus.awaiting_dispatch)
+
+    expected_completion_time: Mapped[datetime.datetime] = mapped_column(
+        nullable=True)  # Ожидаемое время выполнения задачи
+
+    employee = relationship("Employees")
+
+
 class EmployeesContact(Base):
     __tablename__ = "employees_contact"
 

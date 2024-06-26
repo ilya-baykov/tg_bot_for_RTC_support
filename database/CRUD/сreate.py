@@ -3,7 +3,8 @@ from datetime import timedelta
 from database.CRUD.update import EmployeesUpdater, UserAccessUpdater
 from run_app.main_objects import db
 from database.models import *
-from database.CRUD.read import EmployeesReader, InputTableReader, ActionsTodayReader, UserAccessReader
+from database.CRUD.read import EmployeesReader, InputTableReader, ActionsTodayReader, UserAccessReader, \
+    SchedulerTasksReader
 from utility.ActionDecisionToday import ActionDecisionToday
 
 logging.basicConfig(level=logging.INFO)
@@ -134,6 +135,7 @@ class ReportCreator:
 class UserAccessCreator:
     @staticmethod
     async def create_new_user(telegram_id: str):
+        """Создает информацию о пользователь в таблице user_access"""
         async with db.Session() as request:
             user = await UserAccessReader.get_user(telegram_id=telegram_id)
             if user:
@@ -146,3 +148,19 @@ class UserAccessCreator:
                 ))
                 await request.commit()
                 logger.info(f"Добавлена запись о пользователе с telegram_id = {telegram_id}")
+
+
+class SchedulerTasksCreator:
+    @staticmethod
+    async def create_new_task(scheduler_task_id: str, employee_id: int,
+                              expected_completion_time: datetime.datetime) -> None:
+        async with db.Session() as request:
+            scheduler_task = await SchedulerTasksReader.get_tasks(scheduler_task_id)
+            if scheduler_task:
+                logger.warning(f"В планировщике заданий уже есть действие с id {scheduler_task_id}")
+            else:
+                request.add(SchedulerTasks(
+                    id=scheduler_task_id,
+                    employee_id=employee_id,
+                    expected_completion_time=expected_completion_time
+                ))

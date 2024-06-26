@@ -6,7 +6,7 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from Middlewares.ThrottlingMiddleware import ThrottlingMiddleware
+from middlewares.ThrottlingMiddleware import ThrottlingMiddleware
 from database.CRUD.update import ActionsTodayUpdater
 from database.CRUD.сreate import employees_reader, actions_today_reader, input_table_reader, employees_updater, \
     ReportCreator
