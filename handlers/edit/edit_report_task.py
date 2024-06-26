@@ -4,11 +4,12 @@ from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 
 from database.CRUD.read import ActionsTodayReader, EmployeesReader
 from handlers.edit.keyboard import inline_today, TaskInfo
 from handlers.filters_general import RegisteredUser
+from sent_task_to_emploeyee.keyboard import keyboard
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -17,8 +18,8 @@ edit_router = Router()
 
 
 class EditState(StatesGroup):
-    wait_edit = State()
     on_edit = State()
+    write_comment = State()
 
 
 @edit_router.message(RegisteredUser(), Command('edit'))
@@ -33,11 +34,29 @@ async def edit_task(message: Message, state: FSMContext):
 
 
 @edit_router.callback_query(TaskInfo.filter())
-async def test_cb_data(callback_query: CallbackQuery, callback_data: TaskInfo):
-    await callback_query.answer(
-        text=("Проверка определения задачи"
-              f"{callback_data.task_id}")
+async def process_task_selection(callback_query: CallbackQuery, callback_data: TaskInfo, state: FSMContext):
+    await callback_query.answer()
+    await state.set_state(EditState.on_edit)
+
+    # Сохраняем номер задач для редактирования
+    await state.update_data(task_id=callback_data.task_id)
+
+    await callback_query.message.answer(
+        text=f"Отредактируйте задачу {callback_data.task_id}",
+        reply_markup=keyboard
     )
+
+
+@edit_router.message(EditState.on_edit, F.text == "Выполнено")
+async def test(message: Message, state: FSMContext):
+    await state.set_state(EditState.write_comment)
+    await message.answer("Напиши комментарий")
+
+
+@edit_router.message(EditState.write_comment)
+async def test_2(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer("Изменеия успешно сохранились в таблицу.")
 
 
 def register_edit_handlers(dp):
