@@ -6,7 +6,7 @@ from aiogram.exceptions import TelegramAPIError
 from database.CRUD.read import InputTableReader, EmployeesReader, SchedulerTasksReader
 from database.CRUD.update import ActionsTodayUpdater, SchedulerTasksUpdater
 from database.CRUD.сreate import employees_updater, SchedulerTasksCreator
-from database.enums import IntervalType, EmployeesStatus, ActionStatus, SchedulerStatus
+from database.enums import  EmployeesStatus, ActionStatus, SchedulerStatus
 from datetime import datetime, timedelta
 
 from database.models import ActionsToday, InputData
@@ -81,7 +81,7 @@ async def sent_message(action_task: ActionsToday, input_data_task: InputData):
     # Если сообщение было отправлено успешно, обновляем статус действия и сотрудника, задачи в планировщике
     await actions_today_updater.update_status(action_task, ActionStatus.sent)  # Изменить статус действия
     await employees_updater.update_status(employee, EmployeesStatus.busy)  # Изменяем статус сотрудника
-    last_scheduler_tasks_employee = await scheduler_tasks_reader.get_last_tasks_by_employee(
+    last_scheduler_tasks_employee = await scheduler_tasks_reader.get_last_task_by_employee(
         employee_id=action_task.employee_id)
 
     await scheduler_tasks_updater.update_params(task=last_scheduler_tasks_employee,

@@ -5,10 +5,11 @@ from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
+from handlers.filters_general import UserInBanList
 from middlewares.ThrottlingMiddleware import ThrottlingMiddleware
 from database.CRUD.сreate import employees_reader, EmployeesCreator, UserAccessCreator
 from handlers.start.keyboard import keyboard
-from handlers.start.filter import IsTrueContact, UserInBanList
+from handlers.start.filter import IsTrueContact
 from handlers.start.state import UserRegistration
 
 start_router = Router()
