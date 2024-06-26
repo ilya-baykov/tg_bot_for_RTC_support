@@ -1,5 +1,4 @@
 import logging
-import datetime
 
 from os import environ
 
