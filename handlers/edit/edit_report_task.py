@@ -9,6 +9,7 @@ from aiogram.types import Message
 
 from database.CRUD.read import ActionsTodayReader, EmployeesReader
 from handlers.edit.keyboard import inline_today
+from handlers.filters_general import RegisteredUser
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 edit_router = Router()
 
 
-@edit_router.message(Command('edit'))
+@edit_router.message(RegisteredUser(), Command('edit'))
 async def edit_task(message: Message):
     employee = await EmployeesReader().get_employee_by_telegram_id_or_username(telegram_id=str(message.from_user.id))
     if employee:
