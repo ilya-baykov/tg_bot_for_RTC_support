@@ -164,6 +164,21 @@ class ActionsTodayReader:
             logger.info(f"У сотрудника №{employee_id} есть такие задачи в очереди: {[action.id for action in actions]}")
             return actions
 
+    @staticmethod
+    async def get_completed_actions_by_employee_id(employee_id) -> List:
+        """Возвращает все задачи сотрудника со статусом completed """
+        async with db.Session() as request:
+            query = (
+                select(ActionsToday)
+                .join(InputData, ActionsToday.input_data_id == InputData.id)
+                .filter(ActionsToday.employee_id == employee_id, ActionsToday.status == ActionStatus.completed)
+                .order_by(asc(InputData.scheduled_time))
+            )
+            result = await request.execute(query)
+            actions = result.scalars().all()
+            logger.info(f"У сотрудника №{employee_id} есть такие задачи в очереди: {[action.id for action in actions]}")
+            return actions
+
 
 class UserAccessReader:
     @staticmethod
@@ -196,7 +211,7 @@ class SchedulerTasksReader:
             return task
 
     @staticmethod
-    async def get_last_tasks_by_employee(employee_id: int) -> SchedulerTasks | None:
+    async def get_last_task_by_employee(employee_id: int) -> SchedulerTasks | None:
         """Возвращает последнюю задачу конкретного сотрудника со статусом awaiting_dispatch"""
         async with db.Session() as request:
             query = (

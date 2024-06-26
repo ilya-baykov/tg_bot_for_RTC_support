@@ -52,7 +52,7 @@ class Employees(Base):
 class SchedulerTasks(Base):
     __tablename__ = 'scheduler_tasks'
 
-    id: Mapped[int]
+    id: Mapped[int] = mapped_column(primary_key=True)
     employee_id: Mapped[int] = mapped_column(ForeignKey('employees.id'))  # Ссылка на сотрудника из таблицы сотрудников
     status: Mapped[SchedulerStatus] = mapped_column(default=SchedulerStatus.awaiting_dispatch)
 

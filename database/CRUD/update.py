@@ -109,7 +109,7 @@ class UserAccessUpdater:
 
             if user_obj:
                 # Проверяем количество попыток авторизации
-                if user_obj.number_of_attempts >= 3:
+                if user_obj.number_of_attempts > 3:
                     # Обновляем статус действия
                     user_obj.user_status = UserStatus.blocked
                     logger.info(f"Пользователь с telegram_id = {user_obj.telegram_id} заблокирован")
