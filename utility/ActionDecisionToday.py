@@ -105,14 +105,34 @@ class MonthlyDecision(DecisionFunc):
         elif self.day_of_action == "последний":
             last_day_month = calendar.monthrange(self.current_time.year, self.current_time.month)[1]
             return self.current_time.day == last_day_month
-        else:
-            regex_pattern = r"\b([1-9]|[12][0-9]|3[01])\s*-\s*\b([1-9]|[12][0-9]|3[01])\b$"
-            clean_day_of_action = re.sub(r'\s+', ' ', self.day_of_action.strip())
-            if re.match(regex_pattern, clean_day_of_action):
-                days_interval = clean_day_of_action.split("-")
-                if len(days_interval) == 2 and int(days_interval[0]) < int(days_interval[1]):
-                    return int(days_interval[0]) < self.current_time.day < int(days_interval[1])
-            return False
+        elif "," in self.day_of_action:
+            month_interval_days = self.day_of_action.split(',')  # Разбваем строку на интервалы или дни
+
+            if "-" in self.day_of_action:
+                # Пример: 12-22,26-29
+
+                regex_pattern = r"\b([1-9]|[12][0-9]|3[01])\s*-\s*\b([1-9]|[12][0-9]|3[01])\b$"  # пример паттерна : 12-22
+
+                for interval in month_interval_days:
+                    clean_day_of_action = re.sub(r'\s+', ' ', interval.strip())  # Очищаем интервал от пробелов
+                    if re.match(regex_pattern, clean_day_of_action):  # Проверяем интревал на соотвествие паттерну
+                        days_interval = clean_day_of_action.split("-")  # Разбиваем интервал на два числа
+
+                        # Проверяем текущий день в рамках интервала
+                        if len(days_interval) == 2 and int(days_interval[0]) < int(days_interval[1]):
+                            return int(days_interval[0]) < self.current_time.day < int(days_interval[1])
+                return False
+            else:
+                # Пример: 13,17,19,22
+                for interval in month_interval_days:
+                    clean_day_of_action = re.sub(r'\s+', ' ', interval.strip())  # Очищаем интервал от пробелов
+                    try:
+                        # Пробуем перевести в число и сравнить с текущим днём
+                        if int(clean_day_of_action) == self.current_time.day:
+                            return True
+                    except Exception:
+                        pass
+                return False
 
 
 class OneTimeDecision(DecisionFunc):
