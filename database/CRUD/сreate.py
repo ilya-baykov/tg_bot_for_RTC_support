@@ -164,3 +164,4 @@ class SchedulerTasksCreator:
                     employee_id=employee_id,
                     expected_completion_time=expected_completion_time
                 ))
+                await request.commit()
