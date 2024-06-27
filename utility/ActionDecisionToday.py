@@ -120,7 +120,7 @@ class MonthlyDecision(DecisionFunc):
 
                         # Проверяем текущий день в рамках интервала
                         if len(days_interval) == 2 and int(days_interval[0]) < int(days_interval[1]):
-                            if int(days_interval[0]) < self.current_time.day < int(days_interval[1]):
+                            if int(days_interval[0]) <= self.current_time.day <= int(days_interval[1]):
                                 return True
 
                 return False
