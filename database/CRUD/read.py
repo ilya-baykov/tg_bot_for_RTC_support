@@ -1,3 +1,4 @@
+import datetime
 import logging
 from typing import List
 
@@ -85,6 +86,7 @@ class InputTableReader:
             query = (
 
                 select(InputData)
+                .filter(InputData.scheduled_time > datetime.datetime.now().time())
                 .order_by(asc(InputData.scheduled_time), asc(InputData.id))
 
             )
@@ -221,10 +223,7 @@ class SchedulerTasksReader:
 
             )
             result = await request.execute(query)
-            if result:
-                last_task = result.first()
-                return last_task
-            return None
+            return result.scalar_one_or_none()
 
 
 class ReportReader:

@@ -64,7 +64,7 @@ async def test_2(message: Message, state: FSMContext):
     user_data = await state.get_data()
     task_id = user_data.get("task_id")
     status = user_data.get("status")
-    report = await ReportReader().get_report_by_actions_id(task_id)
+    report = await ReportReader().get_report_by_actions_id(int(task_id))
     await ReportUpdater().update_params(report, status=status, comment=message.text)
     await state.clear()
     await message.answer("Изменеия успешно сохранились в таблицу.")

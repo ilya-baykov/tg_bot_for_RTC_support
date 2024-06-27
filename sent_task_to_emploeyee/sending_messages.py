@@ -6,7 +6,7 @@ from aiogram.exceptions import TelegramAPIError
 from database.CRUD.read import InputTableReader, EmployeesReader, SchedulerTasksReader
 from database.CRUD.update import ActionsTodayUpdater, SchedulerTasksUpdater
 from database.CRUD.сreate import employees_updater, SchedulerTasksCreator
-from database.enums import  EmployeesStatus, ActionStatus, SchedulerStatus
+from database.enums import EmployeesStatus, ActionStatus, SchedulerStatus
 from datetime import datetime, timedelta
 
 from database.models import ActionsToday, InputData
@@ -58,6 +58,7 @@ async def add_task_scheduler(scheduler, action_task: ActionsToday):
 
 
 async def sent_message_with_retry(action_task: ActionsToday, input_data_task: InputData, retries=3, delay=5):
+    logger.info("Функция запущена планировщиком задач")
     try:
         await sent_message(action_task, input_data_task)
     except TelegramAPIError as e:
