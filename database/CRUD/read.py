@@ -85,7 +85,7 @@ class InputTableReader:
             query = (
 
                 select(InputData)
-                .order_by(asc(InputData.scheduled_time))
+                .order_by(asc(InputData.scheduled_time), asc(InputData.id))
 
             )
             result = await request.execute(query)
