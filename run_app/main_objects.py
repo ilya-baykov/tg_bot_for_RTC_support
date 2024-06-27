@@ -1,6 +1,5 @@
-import asyncio
 import logging
-import sys
+
 from os import environ
 
 from aiogram import Bot
@@ -24,3 +23,6 @@ async def start_scheduler(scheduler):
     scheduler.start()
     logger.info(f"Планировщик заданий {scheduler} запущен")
     logger.info("Все предыдущие задачи планировщика были удалены")
+
+
+

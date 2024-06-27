@@ -1,3 +1,4 @@
+import datetime
 import logging
 from typing import List
 
@@ -85,7 +86,8 @@ class InputTableReader:
             query = (
 
                 select(InputData)
-                .order_by(asc(InputData.scheduled_time))
+                .filter(InputData.scheduled_time > datetime.datetime.now().time())
+                .order_by(asc(InputData.scheduled_time), asc(InputData.id))
 
             )
             result = await request.execute(query)
@@ -163,3 +165,73 @@ class ActionsTodayReader:
             actions = result.scalars().all()
             logger.info(f"У сотрудника №{employee_id} есть такие задачи в очереди: {[action.id for action in actions]}")
             return actions
+
+    @staticmethod
+    async def get_completed_actions_by_employee_id(employee_id) -> List:
+        """Возвращает все задачи сотрудника со статусом completed """
+        async with db.Session() as request:
+            query = (
+                select(ActionsToday)
+                .join(InputData, ActionsToday.input_data_id == InputData.id)
+                .filter(ActionsToday.employee_id == employee_id, ActionsToday.status == ActionStatus.completed)
+                .order_by(asc(InputData.scheduled_time))
+            )
+            result = await request.execute(query)
+            actions = result.scalars().all()
+            logger.info(f"У сотрудника №{employee_id} есть такие задачи в очереди: {[action.id for action in actions]}")
+            return actions
+
+
+class UserAccessReader:
+    @staticmethod
+    async def get_user(telegram_id: str) -> UserAccess | None:
+        """Возвращает пользователя из таблицы user_access или None"""
+        async with db.Session() as request:
+            query = select(UserAccess).filter_by(telegram_id=telegram_id)
+            result = await request.execute(query)
+            user = result.scalar_one_or_none()
+            return user
+
+    @staticmethod
+    async def is_block_user(telegram_id: str) -> UserAccess | None:
+        """Проверяет статус пользователя (заблокирован или нет)"""
+        async with db.Session() as request:
+            query = select(UserAccess).filter_by(telegram_id=telegram_id, user_status=UserStatus.blocked)
+            result = await request.execute(query)
+            verdict = result.scalar_one_or_none()
+            return verdict
+
+
+class SchedulerTasksReader:
+    @staticmethod
+    async def get_tasks(scheduler_task_id: str) -> SchedulerTasks | None:
+        """Возаращвает задачу из scheduler_tasks"""
+        async with db.Session() as request:
+            query = select(SchedulerTasks).filter_by(id=scheduler_task_id)
+            result = await request.execute(query)
+            task = result.scalar_one_or_none()
+            return task
+
+    @staticmethod
+    async def get_last_task_by_employee(employee_id: int) -> SchedulerTasks | None:
+        """Возвращает последнюю задачу конкретного сотрудника со статусом awaiting_dispatch"""
+        async with db.Session() as request:
+            query = (
+                select(SchedulerTasks)
+                .filter_by(employee_id=employee_id, status=SchedulerStatus.awaiting_dispatch)
+                .order_by(asc(SchedulerTasks.expected_completion_time))
+
+            )
+            result = await request.execute(query)
+            return result.scalar_one_or_none()
+
+
+class ReportReader:
+    @staticmethod
+    async def get_report_by_actions_id(task_id: int) -> Report | None:
+        """Возвращает строку из таблицы report_table"""
+        async with db.Session() as request:
+            query = select(Report).filter_by(action_id=task_id)
+            result = await request.execute(query)
+            report = result.scalar_one_or_none()
+            return report

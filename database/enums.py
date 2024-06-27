@@ -1,8 +1,14 @@
 import enum
 
 
+class UserStatus(enum.Enum):
+    blocked = "Заблокирован"
+    available = "Досупен"
+
+
 class IntervalType(enum.Enum):
     ежедневно = "Каждый день"
+    еженедельно = "Каждую неделю"
     ежемесячно = "Раз в месяц"
     разово = "Однократное выполнение"
 
@@ -21,4 +27,10 @@ class EmployeesStatus(enum.Enum):
 
 class FinalStatus(enum.Enum):
     successfully = "Успешно"
-    failed = "провалено"
+    failed = "Провалено"
+
+
+class SchedulerStatus(enum.Enum):
+    awaiting_dispatch = "Ожидает отправки"
+    successfully = "Успешно выполнено"
+    suspended = "Приостановлено"

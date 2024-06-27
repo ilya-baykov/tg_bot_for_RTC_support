@@ -1,11 +1,11 @@
 import logging
-import calendar
-import re
-
-from database.CRUD.update import EmployeesUpdater
+from datetime import timedelta
+from database.CRUD.update import EmployeesUpdater, UserAccessUpdater
 from run_app.main_objects import db
 from database.models import *
-from database.CRUD.read import EmployeesReader, InputTableReader, ActionsTodayReader
+from database.CRUD.read import EmployeesReader, InputTableReader, ActionsTodayReader, UserAccessReader, \
+    SchedulerTasksReader
+from utility.ActionDecisionToday import ActionDecisionToday
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -52,8 +52,11 @@ class ActionsTodayCreator:
             busy_employees = {}  # Словарь 'занятых' сотрудников
 
             for task in tasks:
-                if await ActionsTodayCreator.is_perform_today(day_of_action=task.completion_day):
+                if ActionDecisionToday(interval=task.interval, day_of_action=task.completion_day).make_decision():
+                    logger.info(f"Задача с ID:{task.id} будет добавлена в список действий на текущий день")
                     await ActionsTodayCreator.process_task(task, busy_employees, session)
+                else:
+                    logger.info(f"Задача с ID:{task.id} не будет добавлена в список действий на текущий день")
 
     @staticmethod
     async def create_action(task, employee, status, session):
@@ -65,37 +68,6 @@ class ActionsTodayCreator:
         ))
         await session.commit()
         logger.info(f"Задача {task.process_name} была добавлена со статусом {status}")
-
-    @staticmethod
-    async def is_perform_today(day_of_action: str | None) -> bool:
-        if day_of_action is None:
-            return True
-
-        today_date = datetime.datetime.now().date()  # Получаем текущую дату без времени
-
-        if day_of_action.lower() == "последний":
-            # Получаем количество дней в этом месяце
-            last_day_month = calendar.monthrange(today_date.year, today_date.month)[1]
-            return today_date.day == last_day_month
-
-        # Проверяем формат "год-месяц-день" (например, "2024-06-22")
-        date_pattern = re.compile(r'^\d{4}-\d{2}-\d{2}$')
-        if date_pattern.match(day_of_action):
-            try:
-                action_date = datetime.datetime.strptime(day_of_action, '%Y-%m-%d').date()
-                return action_date == today_date
-            except ValueError:
-                pass
-
-        # Проверяем числовой день месяца (например, "17")
-        try:
-            day_number = int(day_of_action)
-            return day_number == today_date.day
-        except ValueError:
-            pass
-
-        # Если ни один из вышеописанных случаев не сработал, возвращаем False
-        return False
 
     @staticmethod
     async def process_task(task, busy_employees, session):
@@ -142,9 +114,9 @@ class ActionsTodayCreator:
 
 class ReportCreator:
     @staticmethod
-    async def create_new_report(action_id: int, employee_id: int, expected_dispatch_time: datetime.datetime,
-                                actual_dispatch_time: datetime.datetime, employee_response_time: datetime.datetime,
-                                elapsed_time: datetime.timedelta, status: FinalStatus, comment: str):
+    async def create_new_report(action_id: int, employee_id: int, expected_dispatch_time: datetime,
+                                actual_dispatch_time: datetime, employee_response_time: datetime,
+                                elapsed_time: timedelta, status: FinalStatus, comment: str):
         async with db.Session() as request:
             request.add(Report(
                 action_id=action_id,
@@ -158,3 +130,38 @@ class ReportCreator:
             ))
             await request.commit()
             logger.info(f"Добавлена запись в отчетную таблицу. № Действия {action_id} со статусом {status}")
+
+
+class UserAccessCreator:
+    @staticmethod
+    async def create_new_user(telegram_id: str):
+        """Создает информацию о пользователь в таблице user_access"""
+        async with db.Session() as request:
+            user = await UserAccessReader.get_user(telegram_id=telegram_id)
+            if user:
+                await UserAccessUpdater.update_number_of_attempts(user)
+            else:
+                request.add(UserAccess(
+                    telegram_id=telegram_id,
+                    number_of_attempts=1
+
+                ))
+                await request.commit()
+                logger.info(f"Добавлена запись о пользователе с telegram_id = {telegram_id}")
+
+
+class SchedulerTasksCreator:
+    @staticmethod
+    async def create_new_task(scheduler_task_id: str, employee_id: int,
+                              expected_completion_time: datetime.datetime) -> None:
+        async with db.Session() as request:
+            scheduler_task = await SchedulerTasksReader.get_tasks(scheduler_task_id)
+            if scheduler_task:
+                logger.warning(f"В планировщике заданий уже есть действие с id {scheduler_task_id}")
+            else:
+                request.add(SchedulerTasks(
+                    id=scheduler_task_id,
+                    employee_id=employee_id,
+                    expected_completion_time=expected_completion_time
+                ))
+                await request.commit()
