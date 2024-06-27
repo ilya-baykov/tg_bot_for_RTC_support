@@ -225,3 +225,14 @@ class SchedulerTasksReader:
                 last_task = result.first()
                 return last_task
             return None
+
+
+class ReportReader:
+    @staticmethod
+    async def get_report_by_actions_id(task_id: int) -> Report | None:
+        """Возвращает строку из таблицы report_table"""
+        async with db.Session() as request:
+            query = select(Report).filter_by(action_id=task_id)
+            result = await request.execute(query)
+            report = result.scalar_one_or_none()
+            return report

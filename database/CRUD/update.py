@@ -1,8 +1,8 @@
 import datetime
 import logging
 
-from database.enums import UserStatus, SchedulerStatus
-from database.models import ActionsToday, UserAccess, SchedulerTasks
+from database.enums import UserStatus, SchedulerStatus, FinalStatus
+from database.models import ActionsToday, UserAccess, SchedulerTasks, Report
 
 from run_app.main_objects import db
 
@@ -63,42 +63,6 @@ class ActionsTodayUpdater:
                 logger.warning(f"Действие с ID {action.id} не найдено в базе данных.")
 
 
-# class UserAccessUpdater:
-#     @staticmethod
-#     async def update_user_status(telegram_id: str) -> None:
-#         """Обновляет статус пользователя если привышено количество попыток авторизации """
-#         async with db.Session() as request:
-#             # Получаем пользователя из таблицы user_access
-#             user = await UserAccessReader().get_user(telegram_id=telegram_id)
-#
-#             if user:
-#                 # Проверяем количество попыток авторизации
-#                 if user.number_of_attempts > 3:
-#                     # Обновляем статус действия
-#                     user.status = UserStatus.blocked
-#                     logger.info(f"Пользователь с telegram_id =  {user.telegram_id} заблокирован")
-#                 else:
-#                     logger.info(
-#                         f"у пользователь с telegram_id =  {user.telegram_id}  осталось {3 - user.number_of_attempts} попыток")
-#
-#                 # Сохраняем изменения
-#                 await request.commit()
-#             else:
-#                 logger.warning(f"Пользователь с telegram_id =  {user.telegram_id} не найден")
-#
-#     @staticmethod
-#     async def update_number_of_attempts(telegram_id: str):
-#         """Обновляет количество попыток авторизаций у пользователя"""
-#         async with db.Session() as request:
-#             user = await UserAccessReader().get_user(telegram_id=telegram_id)
-#             if user:
-#                 user.number_of_attempts += 1
-#                 logger.info(f"У пользователя с telegram_id = {telegram_id}, было обновлено количество попыток")
-#                 await UserAccessUpdater.update_user_status(telegram_id)
-#                 await request.commit()
-#
-#             else:
-#                 logger.warning(f"Пользователь с telegram_id =  {telegram_id} не найден")
 class UserAccessUpdater:
     @staticmethod
     async def update_user_status(user: UserAccess) -> None:
@@ -147,5 +111,19 @@ class SchedulerTasksUpdater:
             if time:
                 task_obj.expected_completion_time = time
                 logger.info(f"У задачи {task_obj.id} было изменено ожидаемое время выполнения {time}")
+
+            await request.commit()
+
+
+class ReportUpdater:
+    @staticmethod
+    async def update_params(report: Report, status: FinalStatus, comment: str) -> None:
+        async with db.Session() as request:
+            report_obj = await request.get(Report, report.id)
+
+            report_obj.status = status
+            logger.info(f"В отчете: №{report_obj.id} был изменен статус на {status}")
+            report_obj.comment = comment
+            logger.info(f"В отчете: №{report_obj.id} был изменен комментарий на {comment}")
 
             await request.commit()

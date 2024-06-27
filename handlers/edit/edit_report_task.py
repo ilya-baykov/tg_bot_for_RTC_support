@@ -6,7 +6,9 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 
-from database.CRUD.read import ActionsTodayReader, EmployeesReader
+from database.CRUD.read import ActionsTodayReader, EmployeesReader, ReportReader
+from database.CRUD.update import ReportUpdater
+from database.enums import FinalStatus
 from handlers.edit.keyboard import inline_today, TaskInfo
 from handlers.filters_general import RegisteredUser
 from sent_task_to_emploeyee.keyboard import keyboard
@@ -50,11 +52,20 @@ async def process_task_selection(callback_query: CallbackQuery, callback_data: T
 @edit_router.message(EditState.on_edit, F.text.in_({"Выполнено", "Не выполнено"}))
 async def test(message: Message, state: FSMContext):
     await state.set_state(EditState.write_comment)
+    if message.text == "Выполнено":
+        await state.update_data({"status": FinalStatus.successfully})
+    elif message.text == "Не выполнено":
+        await state.update_data({"status": FinalStatus.failed})
     await message.answer("Напиши комментарий")
 
 
 @edit_router.message(EditState.write_comment)
 async def test_2(message: Message, state: FSMContext):
+    user_data = await state.get_data()
+    task_id = user_data.get("task_id")
+    status = user_data.get("status")
+    report = await ReportReader().get_report_by_actions_id(task_id)
+    await ReportUpdater().update_params(report, status=status, comment=message.text)
     await state.clear()
     await message.answer("Изменеия успешно сохранились в таблицу.")
 
