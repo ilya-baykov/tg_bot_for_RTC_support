@@ -98,11 +98,15 @@ async def test_2(message: Message, state: FSMContext):
         await SchedulerTasksUpdater.update_params(task=task_in_scheduler,
                                                   status=SchedulerStatus.awaiting_dispatch,
                                                   time=time)
-        new_run_time = time
-        new_trigger = DateTrigger(run_date=new_run_time)
 
+        new_trigger = DateTrigger(run_date=time)
+
+        # Изменение времени задачи
         scheduler.modify_job(task_in_scheduler_id, trigger=new_trigger)
-        logger.info(f"Время выполнения задачи с ID {task_in_scheduler_id} установлено на :{new_run_time}.")
+        # Возобновление задачи
+        scheduler.resume_job(task_in_scheduler_id)
+
+        logger.info(f"Время выполнения задачи с ID {task_in_scheduler_id} установлено на :{time}.")
 
     status = user_data.get("status")
     report = await ReportReader().get_report_by_actions_id(int(task_id))
