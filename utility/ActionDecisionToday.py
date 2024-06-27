@@ -86,8 +86,12 @@ class WeeklyDecision(DecisionFunc):
     def make_decision(self) -> bool:
         """Принимает решение для еженедельной задачи на основе текущего дня недели."""
 
-        day_of_week_eng = self.current_time.strftime('%A')
-        return self.day_of_action.lower() in DAYS_OF_WEEK_EN_RU[day_of_week_eng.lower()]
+        day_of_week_eng = self.current_time.strftime('%A')  # Текущий день недели на английском языке
+        days = self.day_of_action.lower().split(',')  # Разбиваем строку из дней недели (пн,ср,пт) -пример
+        for day in days:
+            if day in DAYS_OF_WEEK_EN_RU[day_of_week_eng.lower()]:
+                return True
+        return False
 
 
 class MonthlyDecision(DecisionFunc):
