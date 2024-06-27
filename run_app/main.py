@@ -3,7 +3,7 @@ import datetime
 import logging
 import platform
 
-from database.CRUD.delete import ActionsTodayDeleter
+from database.CRUD.delete import ActionsTodayDeleter, SchedulerTasksDeleter
 from main_objects import start_scheduler, scheduler, db
 from run_app.bot_running import start_bot
 from database.CRUD.read import ActionsTodayReader
@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 async def updating_daily_tasks():
     """Функция, которая будет запускаться каждый день для формирования актуальных задач"""
     await ActionsTodayDeleter().clear_table()
+    await SchedulerTasksDeleter().clear_table()
+
     await ActionsTodayCreator().create_new_actions()  # Считываем входную таблицу и формируем актуальные задачи
     logger.info(f"Ежедненвые задачи обновлены в {datetime.datetime.now()}")
 
@@ -31,7 +33,7 @@ async def preparation_for_launch():
     # await db.create_db()  # Создает все модели в БД
 
     await start_scheduler(scheduler)  # Запуск планировщика заданий
-    # await updating_daily_tasks()  # Формирование актуальных задач
+    await updating_daily_tasks()  # Формирование актуальных задач
 
     # Добавляем задачу, которая будет выполняться каждый день в 00:00:00
     scheduler.add_job(updating_daily_tasks, trigger="cron", hour=0, minute=0, second=0)
@@ -41,8 +43,11 @@ async def preparation_for_launch():
 
 if __name__ == '__main__':
 
-    # Установите политику цикла событий для Windows
-    if platform.system() == 'Windows':
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    try:
+        # Установите политику цикла событий для Windows
+        if platform.system() == 'Windows':
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-    asyncio.run(preparation_for_launch())
+        asyncio.run(preparation_for_launch())
+    except Exception as e:
+        print(e)
