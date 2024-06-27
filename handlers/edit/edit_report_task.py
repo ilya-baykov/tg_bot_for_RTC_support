@@ -90,10 +90,10 @@ async def test_2(message: Message, state: FSMContext):
         task_in_scheduler = await SchedulerTasksReader.get_tasks(task_in_scheduler_id)
 
         # Если следующая задача должна была выполниться - переводим время
-        if task_in_scheduler.expected_completion_time > current_time + timedelta(seconds=5):
+        if task_in_scheduler.expected_completion_time > current_time + timedelta(seconds=10):
             time = task_in_scheduler.expected_completion_time
         else:
-            time = task_in_scheduler.expected_completion_time + timedelta(seconds=5)
+            time = current_time + timedelta(seconds=10)
 
         await SchedulerTasksUpdater.update_params(task=task_in_scheduler,
                                                   status=SchedulerStatus.awaiting_dispatch,
