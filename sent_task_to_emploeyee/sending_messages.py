@@ -3,13 +3,13 @@ import logging
 from turtle import delay
 
 from aiogram.exceptions import TelegramAPIError
-from database.CRUD.read import InputTableReader, EmployeesReader, SchedulerTasksReader
+from database.CRUD.read import ClearInputTableReader, EmployeesReader, SchedulerTasksReader
 from database.CRUD.update import ActionsTodayUpdater, SchedulerTasksUpdater
 from database.CRUD.сreate import employees_updater, SchedulerTasksCreator
 from database.enums import EmployeesStatus, ActionStatus, SchedulerStatus
 from datetime import datetime, timedelta
 
-from database.models import ActionsToday, InputData
+from database.models import ActionsToday, ClearInputData
 from run_app.main_objects import bot
 from sent_task_to_emploeyee.keyboard import keyboard
 
@@ -33,7 +33,7 @@ def check_scheduler(scheduler):
 
 async def add_task_scheduler(scheduler, action_task: ActionsToday):
     check_scheduler(scheduler)
-    input_data_task = await InputTableReader().get_input_task_by_id(action_task.input_data_id)
+    input_data_task = await ClearInputTableReader().get_input_task_by_id(action_task.input_data_id)
     scheduled_time = input_data_task.scheduled_time
 
     # Преобразуем время в объекты datetime
@@ -57,7 +57,7 @@ async def add_task_scheduler(scheduler, action_task: ActionsToday):
     await scheduler_tasks_creator.create_new_task(job.id, action_task.employee_id, scheduled_datetime)
 
 
-async def sent_message_with_retry(action_task: ActionsToday, input_data_task: InputData, retries=3, delay=5):
+async def sent_message_with_retry(action_task: ActionsToday, input_data_task: ClearInputData, retries=3, delay=5):
     logger.info("Функция запущена планировщиком задач")
     try:
         await sent_message(action_task, input_data_task)
@@ -71,7 +71,7 @@ async def sent_message_with_retry(action_task: ActionsToday, input_data_task: In
             logger.error(f"Не удалось отправить сообщение для действия: №{action_task.id} после нескольких попыток")
 
 
-async def sent_message(action_task: ActionsToday, input_data_task: InputData):
+async def sent_message(action_task: ActionsToday, input_data_task: ClearInputData):
     message_text = f"Имя процесса: {input_data_task.process_name}\nОписание процесса:{input_data_task.action_description}"
     employee = await employees_reader.get_employee_by_id(action_task.employee_id)
 

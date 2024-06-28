@@ -1,17 +1,17 @@
 import logging
-from datetime import timedelta
+from datetime import timedelta, datetime
 from database.CRUD.update import EmployeesUpdater, UserAccessUpdater
 from run_app.main_objects import db
 from database.models import *
-from database.CRUD.read import EmployeesReader, InputTableReader, ActionsTodayReader, UserAccessReader, \
-    SchedulerTasksReader
+from database.CRUD.read import EmployeesReader, ClearInputTableReader, ActionsTodayReader, UserAccessReader, \
+    SchedulerTasksReader, RawInputTable
 from utility.ActionDecisionToday import ActionDecisionToday
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 employees_reader = EmployeesReader()
-input_table_reader = InputTableReader()
+clear_input_table_reader = ClearInputTableReader()
 employees_updater = EmployeesUpdater()
 actions_today_reader = ActionsTodayReader()
 
@@ -48,7 +48,7 @@ class ActionsTodayCreator:
     async def create_new_actions():
         """Формируем актуальные задачи из исходной таблицы """
         async with db.Session() as session:
-            tasks = await input_table_reader.get_all_actions()  # Получаем список всех задач из входной таблицы
+            tasks = await clear_input_table_reader.get_all_actions()  # Получаем список всех задач из входной таблицы
             busy_employees = {}  # Словарь 'занятых' сотрудников
 
             for task in tasks:
@@ -165,3 +165,30 @@ class SchedulerTasksCreator:
                     expected_completion_time=expected_completion_time
                 ))
                 await request.commit()
+
+
+class ClearInputDataCreator:
+    @staticmethod
+    async def create_clear_data():
+        """Очищает данные из исходной таблицы и сохраняет в clear_input_table"""
+        async with db.Session() as request:
+            raw_data = await RawInputTable.get_row_table_data()
+            for row in raw_data:
+                scheduled_time: list = row.scheduled_time.split(',')  # Список времён для запуска процесса
+                for time_str in scheduled_time:
+                    try:
+                        time = datetime.datetime.strptime(time_str.strip(), "%H:%M:%S").time()
+                    except ValueError:
+                        print(f"Некорректное время: {time_str}")
+                        continue
+                    request.add(ClearInputData(
+                        process_name=row.process_name,
+                        action_description=row.action_description,
+                        telegram_username=row.telegram_username,
+                        interval=row.interval,
+                        completion_day=row.completion_day,
+                        scheduled_time=time
+
+                    ))
+                    logger.info(f"В таблицу clear_input_table была добавлена запись {row.process_name}:{time}")
+            await request.commit()

@@ -2,7 +2,7 @@ import logging
 
 from sqlalchemy import delete
 
-from database.models import ActionsToday, SchedulerTasks
+from database.models import ActionsToday, SchedulerTasks, ClearInputData
 from run_app.main_objects import db
 
 logging.basicConfig(level=logging.INFO)
@@ -29,3 +29,14 @@ class SchedulerTasksDeleter:
             await request.execute(delete(SchedulerTasks))
             await request.commit()
             logger.info("Таблица scheduler_tasks была успешно очищена")
+
+
+class ClearInputDataDeleter:
+    @staticmethod
+    async def clear_table():
+        """Очищаем таблицу clear_input_data"""
+        async with db.Session() as request:
+            logger.info("Очистка таблицы clear_input_data...")
+            await request.execute(delete(ClearInputData))
+            await request.commit()
+            logger.info("Таблица clear_input_data была успешно очищена")

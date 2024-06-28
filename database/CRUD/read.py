@@ -77,7 +77,7 @@ class EmployeesReader:
             return tasks
 
 
-class InputTableReader:
+class ClearInputTableReader:
     @staticmethod
     async def get_all_actions():
         """Возвращает список всех действий из исходной таблицы"""
@@ -85,9 +85,9 @@ class InputTableReader:
         async with (db.Session() as request):
             query = (
 
-                select(InputData)
-                .filter(InputData.scheduled_time > datetime.datetime.now().time())
-                .order_by(asc(InputData.scheduled_time), asc(InputData.id))
+                select(ClearInputData)
+                .filter(ClearInputData.scheduled_time > datetime.datetime.now().time())
+                .order_by(asc(ClearInputData.scheduled_time), asc(ClearInputData.id))
 
             )
             result = await request.execute(query)
@@ -99,7 +99,7 @@ class InputTableReader:
     @staticmethod
     async def get_input_task_by_id(input_data_id: int):
         async with db.Session() as request:
-            query = select(InputData).filter_by(id=input_data_id)
+            query = select(ClearInputData).filter_by(id=input_data_id)
             result = await request.execute(query)
             input_data_task = result.scalar_one_or_none()
             if input_data_task:
@@ -157,9 +157,9 @@ class ActionsTodayReader:
         async with db.Session() as request:
             query = (
                 select(ActionsToday)
-                .join(InputData, ActionsToday.input_data_id == InputData.id)
+                .join(ClearInputData, ActionsToday.input_data_id == ClearInputData.id)
                 .filter(ActionsToday.employee_id == employee_id, ActionsToday.status == ActionStatus.queued_to_be_added)
-                .order_by(asc(InputData.scheduled_time))
+                .order_by(asc(ClearInputData.scheduled_time))
             )
             result = await request.execute(query)
             actions = result.scalars().all()
@@ -172,9 +172,9 @@ class ActionsTodayReader:
         async with db.Session() as request:
             query = (
                 select(ActionsToday)
-                .join(InputData, ActionsToday.input_data_id == InputData.id)
+                .join(ClearInputData, ActionsToday.input_data_id == ClearInputData.id)
                 .filter(ActionsToday.employee_id == employee_id, ActionsToday.status == ActionStatus.completed)
-                .order_by(asc(InputData.scheduled_time))
+                .order_by(asc(ClearInputData.scheduled_time))
             )
             result = await request.execute(query)
             actions = result.scalars().all()
@@ -235,3 +235,15 @@ class ReportReader:
             result = await request.execute(query)
             report = result.scalar_one_or_none()
             return report
+
+
+class RawInputTable:
+    @staticmethod
+    async def get_row_table_data() -> List[RawInputData]:
+        """Считывает все строки из необработанной входной таблицы"""
+        async with db.Session() as request:
+            query = select(RawInputData)
+            result = await request.execute(query)
+            data = result.scalars().all()
+            logger.info(f"В исходной таблице {len(data)} строк")
+            return data
