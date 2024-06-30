@@ -2,7 +2,7 @@ import datetime
 import logging
 from typing import List
 
-from sqlalchemy import select, asc
+from sqlalchemy import select, asc, desc
 
 from run_app.main_objects import db
 from database.models import *
@@ -174,12 +174,13 @@ class ActionsTodayReader:
                 select(ActionsToday)
                 .join(ClearInputData, ActionsToday.input_data_id == ClearInputData.id)
                 .filter(ActionsToday.employee_id == employee_id, ActionsToday.status == ActionStatus.completed)
-                .order_by(asc(ClearInputData.scheduled_time))
+                .order_by(desc(ClearInputData.scheduled_time), desc(ActionsToday.id))
             )
             result = await request.execute(query)
             actions = result.scalars().all()
             logger.info(f"У сотрудника №{employee_id} есть такие задачи в очереди: {[action.id for action in actions]}")
             return actions
+
 
 
 class UserAccessReader:

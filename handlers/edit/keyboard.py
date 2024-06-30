@@ -13,6 +13,7 @@ class TaskInfo(CallbackData, prefix="task_info_inline_kb"):
 
 async def inline_today(last_tasks: List):
     keyboard = InlineKeyboardBuilder()
+    last_tasks = last_tasks[:3]  # Получаем последние 3 задачи
     for action_today_task in last_tasks:
         input_task = await ClearInputTableReader().get_input_task_by_id(action_today_task.input_data_id)
         callback_data = TaskInfo(task_id=str(action_today_task.id))
