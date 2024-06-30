@@ -177,7 +177,7 @@ class ClearInputDataCreator:
                 scheduled_time: list = row.scheduled_time.split(',')  # Список времён для запуска процесса
                 for time_str in scheduled_time:
                     try:
-                        time = datetime.datetime.strptime(time_str.strip(), "%H:%M:%S").time()
+                        time = datetime.datetime.strptime(time_str.strip(), "%H:%M").time()
                     except ValueError:
                         print(f"Некорректное время: {time_str}")
                         continue
