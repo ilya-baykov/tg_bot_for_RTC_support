@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import Tuple, Union
 
 from database.CRUD.update import ActionsTodayUpdater
-from database.CRUD.сreate import employees_reader, actions_today_reader, employees_updater, input_table_reader, \
+from database.CRUD.сreate import employees_reader, actions_today_reader, employees_updater, clear_input_table_reader, \
     ReportCreator
 from database.enums import ActionStatus, EmployeesStatus, FinalStatus
 from database.models import Employees, ActionsToday
@@ -61,7 +61,7 @@ class ActionManager:
         if employee and sent_process:
             current_time = datetime.now()
 
-            task_from_input_table = await input_table_reader.get_input_task_by_id(sent_process.input_data_id)
+            task_from_input_table = await clear_input_table_reader.get_input_task_by_id(sent_process.input_data_id)
             actual_dispatch_time = sent_process.actual_time_message
 
             time_difference = current_time - actual_dispatch_time

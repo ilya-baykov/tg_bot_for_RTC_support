@@ -105,7 +105,7 @@ class MonthlyDecision(DecisionFunc):
         elif self.day_of_action == "последний":
             last_day_month = calendar.monthrange(self.current_time.year, self.current_time.month)[1]
             return self.current_time.day == last_day_month
-        elif "," in self.day_of_action:
+        elif "," in self.day_of_action or '-' in self.day_of_action:
             month_interval_days = self.day_of_action.split(',')  # Разбваем строку на интервалы или дни
 
             if "-" in self.day_of_action:

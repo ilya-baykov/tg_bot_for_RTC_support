@@ -9,8 +9,21 @@ from database.enums import *
 intpk = Annotated[int, mapped_column(primary_key=True)]
 
 
-class InputData(Base):
-    __tablename__ = "input_table"
+class RawInputData(Base):
+    __tablename__ = "raw_input_table"
+
+    id: Mapped[intpk]
+    process_name: Mapped[str_100]  # Имя процесса
+    action_description: Mapped[str_512]  # Описание действия
+    telegram_username: Mapped[str_50]  # Имя пользователя в телеграмме сотрудника
+    interval: Mapped[IntervalType]  # Возможные варианты запуска (Каждый день, раз в месяц, разовое выполнение)
+
+    completion_day: Mapped[str_50] = mapped_column(nullable=True)  # День когда запускать процесс
+    scheduled_time: Mapped[str_50] = mapped_column(nullable=True)  # Время отправки сообщения об процессе
+
+
+class ClearInputData(Base):
+    __tablename__ = "clear_input_table"
 
     id: Mapped[intpk]
     process_name: Mapped[str_100]
@@ -27,7 +40,7 @@ class ActionsToday(Base):
 
     id: Mapped[intpk]
     input_data_id: Mapped[int | None] = mapped_column(
-        ForeignKey('input_table.id', ondelete="SET NULL"))  # Ссылка на действие из входной таблицы
+        ForeignKey('clear_input_table.id', ondelete="SET NULL"))  # Ссылка на действие из входной таблицы
 
     employee_id: Mapped[int] = mapped_column(ForeignKey('employees.id'))  # Ссылка на сотрудника из таблицы сотрудников
 
@@ -35,7 +48,7 @@ class ActionsToday(Base):
 
     actual_time_message: Mapped[datetime.datetime] = mapped_column(nullable=True)
 
-    input_table = relationship("InputData")
+    clear_input_table = relationship("ClearInputData")
     employee = relationship("Employees")
 
 

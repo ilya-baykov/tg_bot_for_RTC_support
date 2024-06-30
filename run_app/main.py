@@ -3,11 +3,11 @@ import datetime
 import logging
 import platform
 
-from database.CRUD.delete import ActionsTodayDeleter, SchedulerTasksDeleter
+from database.CRUD.delete import ActionsTodayDeleter, SchedulerTasksDeleter, ClearInputDataDeleter
 from main_objects import start_scheduler, scheduler, db
 from run_app.bot_running import start_bot
 from database.CRUD.read import ActionsTodayReader
-from database.CRUD.сreate import ActionsTodayCreator
+from database.CRUD.сreate import ActionsTodayCreator, ClearInputDataCreator
 from sent_task_to_emploeyee.sending_messages import add_task_scheduler
 
 logging.basicConfig(level=logging.INFO)
@@ -18,7 +18,9 @@ async def updating_daily_tasks():
     """Функция, которая будет запускаться каждый день для формирования актуальных задач"""
     await ActionsTodayDeleter().clear_table()
     await SchedulerTasksDeleter().clear_table()
+    await ClearInputDataDeleter().clear_table()
 
+    await ClearInputDataCreator().create_clear_data()  # Очищаю данные из сырой таблицы raw_input_table
     await ActionsTodayCreator().create_new_actions()  # Считываем входную таблицу и формируем актуальные задачи
     logger.info(f"Ежедненвые задачи обновлены в {datetime.datetime.now()}")
 
