@@ -2,9 +2,10 @@ import asyncio
 import datetime
 import logging
 import platform
+from os import environ
 
 from database.CRUD.delete import ActionsTodayDeleter, SchedulerTasksDeleter, ClearInputDataDeleter
-from main_objects import start_scheduler, scheduler, db
+from main_objects import start_scheduler, scheduler, db, load_json
 from run_app.bot_running import start_bot
 from database.CRUD.read import ActionsTodayReader
 from database.CRUD.сreate import ActionsTodayCreator, ClearInputDataCreator
@@ -16,18 +17,24 @@ logger = logging.getLogger(__name__)
 
 async def updating_daily_tasks():
     """Функция, которая будет запускаться каждый день для формирования актуальных задач"""
+
     await ActionsTodayDeleter().clear_table()
     await SchedulerTasksDeleter().clear_table()
     await ClearInputDataDeleter().clear_table()
 
-    await ClearInputDataCreator().create_clear_data()  # Очищаю данные из сырой таблицы raw_input_table
-    await ActionsTodayCreator().create_new_actions()  # Считываем входную таблицу и формируем актуальные задачи
-    logger.info(f"Ежедненвые задачи обновлены в {datetime.datetime.now()}")
+    # Проверка рабочего дня
+    if str(datetime.date.today()) not in (await load_json(path=environ.get('JSON_PATH', 'define me!')))['dates']:
 
-    pending_actions = await ActionsTodayReader().get_pending_actions()  # Получаем все задачи, ожидающие отправки
+        await ClearInputDataCreator().create_clear_data()  # Очищаю данные из сырой таблицы raw_input_table
+        await ActionsTodayCreator().create_new_actions()  # Считываем входную таблицу и формируем актуальные задачи
 
-    for action in pending_actions:
-        await add_task_scheduler(scheduler=scheduler, action_task=action)  # Передаем задачи в планировщик
+        pending_actions = await ActionsTodayReader().get_pending_actions()  # Получаем все задачи, ожидающие отправки
+        for action in pending_actions:
+            await add_task_scheduler(scheduler=scheduler, action_task=action)  # Передаем задачи в планировщик
+        logger.info(f"Ежедненвые задачи обновлены в {datetime.datetime.now()}")
+
+    else:
+        logger.info(f"Сегодня нерабочий день, задачи не обновлены в {datetime.datetime.now()}")
 
 
 async def preparation_for_launch():

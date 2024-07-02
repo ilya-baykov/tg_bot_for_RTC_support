@@ -1,7 +1,8 @@
 import logging
-
+import json
 from os import environ
 
+import aiofiles
 from aiogram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -25,4 +26,12 @@ async def start_scheduler(scheduler):
     logger.info("Все предыдущие задачи планировщика были удалены")
 
 
-
+async def load_json(path: str):
+    """
+    Эта функция загружает календарь нерабочих дней в формате JSON.
+    Файл должен быть указан в переменной окружения 'JSON_PATH'.
+    """
+    async with aiofiles.open(path, mode='r') as json_file:
+        content = await json_file.read()
+        result = json.loads(content)
+        return result
