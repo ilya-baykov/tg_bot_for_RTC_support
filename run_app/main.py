@@ -39,7 +39,7 @@ async def updating_daily_tasks():
 
 async def preparation_for_launch():
     # await db.reset_database()  # Очищает БД
-    # await db.create_db()  # Создает все модели в БД
+    await db.create_db()  # Создает все модели в БД
 
     await start_scheduler(scheduler)  # Запуск планировщика заданий
     await updating_daily_tasks()  # Формирование актуальных задач
@@ -60,3 +60,6 @@ if __name__ == '__main__':
         asyncio.run(preparation_for_launch())
     except Exception as e:
         print(e)
+
+
+

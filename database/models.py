@@ -1,6 +1,6 @@
 import datetime
 from typing import Annotated
-from sqlalchemy import ForeignKey, Interval, Time
+from sqlalchemy import ForeignKey, Interval, Time, Enum as PgEnum
 from sqlalchemy.orm import Mapped, relationship, mapped_column
 
 from database.Base import Base, str_20, str_50, str_100, str_512
@@ -87,21 +87,18 @@ class Report(Base):
     __tablename__ = "report_table"
 
     id: Mapped[intpk]
-    action_id: Mapped[int | None] = mapped_column(
-        ForeignKey('actions_today.id', ondelete="SET NULL"))  # Ссылка на действие из таблицы действий
-    employee_id: Mapped[int | None] = mapped_column(
-        ForeignKey('employees.id', ondelete="SET NULL"))  # Ссылка на сотрудника из таблицы сотрудников
+    process_name: Mapped[str_100]  # Имя выполненного процесса
+    action_description: Mapped[str_512]  # Описание выполненного действия
+    employee_name: Mapped[str_50] = mapped_column(nullable=True)  # Имя сотрудника, отвечающего за процесс
+    expected_dispatch_time: Mapped[datetime.datetime]  # Ожидаемое время отправки сообщения сотруднику
+    actual_dispatch_time: Mapped[datetime.datetime]  # Фактическое время отправки сообщения сотруднику
+    employee_response_time: Mapped[datetime.datetime]  # Фиксация времени ответа сотрудником
+    elapsed_time: Mapped[datetime.timedelta] = mapped_column(Interval)  # Разница времени (время на ответ)
 
-    expected_dispatch_time: Mapped[datetime.datetime]
-    actual_dispatch_time: Mapped[datetime.datetime]
-    employee_response_time: Mapped[datetime.datetime]
-    elapsed_time: Mapped[datetime.timedelta] = mapped_column(Interval)
+    status: Mapped[str_50]
 
-    status: Mapped[FinalStatus]
+
     comment: Mapped[str_512]
-
-    actions = relationship("ActionsToday")
-    employee = relationship("Employees")
 
 
 class UserAccess(Base):

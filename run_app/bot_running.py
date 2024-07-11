@@ -11,7 +11,7 @@ dp = Dispatcher()
 
 async def start_bot():
     # Регистрация обработчиков
-
+    
     register_start_handlers(dp)  # Стартовый обработчик
     register_edit_handlers(dp)  # Обработчик для редактирования отчетов
     register_user_response(dp)  # Обработчик ответов сотрудников

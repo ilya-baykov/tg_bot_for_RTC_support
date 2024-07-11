@@ -121,8 +121,8 @@ class ReportUpdater:
         async with db.Session() as request:
             report_obj = await request.get(Report, report.id)
 
-            report_obj.status = status
-            logger.info(f"В отчете: №{report_obj.id} был изменен статус на {status}")
+            report_obj.status = status.value
+            logger.info(f"В отчете: №{report_obj.id} был изменен статус на {status.value}")
             report_obj.comment = comment
             logger.info(f"В отчете: №{report_obj.id} был изменен комментарий на {comment}")
 
