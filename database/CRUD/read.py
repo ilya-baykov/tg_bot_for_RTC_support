@@ -1,8 +1,7 @@
-import datetime
 import logging
 from typing import List
 
-from sqlalchemy import select, asc, desc
+from sqlalchemy import select, asc, desc, func
 
 from run_app.main_objects import db
 from database.models import *
@@ -182,7 +181,6 @@ class ActionsTodayReader:
             return actions
 
 
-
 class UserAccessReader:
     @staticmethod
     async def get_user(telegram_id: str) -> UserAccess | None:
@@ -229,13 +227,29 @@ class SchedulerTasksReader:
 
 class ReportReader:
     @staticmethod
-    async def get_report_by_actions_id(task_id: int) -> Report | None:
+    async def get_report_by_id(task_id: int) -> Report | None:
         """Возвращает строку из таблицы report_table"""
         async with db.Session() as request:
-            query = select(Report).filter_by(action_id=task_id)
+            query = select(Report).filter_by(id=task_id)
             result = await request.execute(query)
             report = result.scalar_one_or_none()
             return report
+
+    @staticmethod
+    async def get_report_by_employee_name(employee_name: str) -> List[Report]:
+        """Возвращает задачи из отчетной таблицы по имени сотрудника за текущий день (сортирует в обратном порядке)"""
+        async with db.Session() as request:
+            today = datetime.datetime.today().date()
+            query = (
+
+                select(Report)
+                .filter_by(employee_name=employee_name)
+                .filter(func.date(Report.employee_response_time) == today)
+                .order_by(Report.employee_response_time.desc()))
+
+            result = await request.execute(query)
+            reports = result.scalars().all()
+            return reports
 
 
 class RawInputTable:

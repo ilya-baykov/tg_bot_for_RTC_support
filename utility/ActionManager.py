@@ -69,8 +69,9 @@ class ActionManager:
                 microseconds=time_difference.microseconds)
 
             await report_creator.create_new_report(
-                action_id=sent_process.id,
-                employee_id=employee.id,
+                process_name=task_from_input_table.process_name,
+                action_description=task_from_input_table.action_description,
+                employee_name=employee.name,
                 expected_dispatch_time=datetime.combine(datetime.today(), task_from_input_table.scheduled_time),
                 actual_dispatch_time=actual_dispatch_time,
                 employee_response_time=current_time,

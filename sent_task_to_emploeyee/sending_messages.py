@@ -87,3 +87,5 @@ async def sent_message(action_task: ActionsToday, input_data_task: ClearInputDat
 
     await scheduler_tasks_updater.update_params(task=last_scheduler_tasks_employee,
                                                 status=SchedulerStatus.successfully)
+
+

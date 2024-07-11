@@ -6,17 +6,12 @@ from aiogram.types import Message
 
 from handlers.filters_general import RegisteredUser
 from middlewares.ThrottlingMiddleware import ThrottlingMiddleware
-from database.CRUD.update import ActionsTodayUpdater
-from database.CRUD.сreate import ReportCreator
 from database.enums import FinalStatus
 from handlers.processing_employee_responses.state import UserResponse
 from utility.ActionManager import ActionManager
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-actions_today_updater = ActionsTodayUpdater()
-report_creator = ReportCreator()
 
 user_answer = Router()
 user_answer.message.middleware(ThrottlingMiddleware(limit=2))
@@ -27,7 +22,7 @@ async def user_response(message: Message, state: FSMContext):
     text_message = await ActionManager.filling_out_report(
         user_telegram_id=str(message.from_user.id),
         status=FinalStatus.successfully,
-        comment="Успешно"
+        comment=""
     )
     await message.answer(text_message)
 

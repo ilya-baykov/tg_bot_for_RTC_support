@@ -32,7 +32,7 @@ class EditState(StatesGroup):
 async def edit_task(message: Message, state: FSMContext):
     employee = await EmployeesReader().get_employee_by_telegram_id_or_username(telegram_id=str(message.from_user.id))
 
-    last_tasks = await ActionsTodayReader().get_completed_actions_by_employee_id(employee.id)
+    last_tasks = await ReportReader().get_report_by_employee_name(employee.name)
 
     message_text = 'Выбери процесс,который хочешь редактировать' if last_tasks else "Сегодня вы еще не обработали ни одного действия"
 
@@ -109,7 +109,7 @@ async def test_2(message: Message, state: FSMContext):
         logger.info(f"Время выполнения задачи с ID {task_in_scheduler_id} установлено на :{time}.")
 
     status = user_data.get("status")
-    report = await ReportReader().get_report_by_actions_id(int(task_id))
+    report = await ReportReader().get_report_by_id(int(task_id))
     await ReportUpdater().update_params(report, status=status, comment=message.text)
     await state.clear()
     await message.answer("Изменеия успешно сохранились в таблицу.")

@@ -114,22 +114,24 @@ class ActionsTodayCreator:
 
 class ReportCreator:
     @staticmethod
-    async def create_new_report(action_id: int, employee_id: int, expected_dispatch_time: datetime,
+    async def create_new_report(process_name: str, action_description: str, employee_name: str,
+                                expected_dispatch_time: datetime,
                                 actual_dispatch_time: datetime, employee_response_time: datetime,
                                 elapsed_time: timedelta, status: FinalStatus, comment: str):
         async with db.Session() as request:
             request.add(Report(
-                action_id=action_id,
-                employee_id=employee_id,
+                process_name=process_name,
+                action_description=action_description,
+                employee_name=employee_name,
                 expected_dispatch_time=expected_dispatch_time,
                 actual_dispatch_time=actual_dispatch_time,
                 employee_response_time=employee_response_time,
                 elapsed_time=elapsed_time,
-                status=status,
+                status=status.value,
                 comment=comment
             ))
             await request.commit()
-            logger.info(f"Добавлена запись в отчетную таблицу. № Действия {action_id} со статусом {status}")
+            logger.info(f"Добавлена запись в отчетную таблицу. № Действия {process_name} со статусом {status}")
 
 
 class UserAccessCreator:
