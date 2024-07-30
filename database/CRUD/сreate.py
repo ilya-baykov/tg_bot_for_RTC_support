@@ -7,7 +7,6 @@ from database.CRUD.read import EmployeesReader, ClearInputTableReader, ActionsTo
     SchedulerTasksReader, RawInputTable
 from utility.ActionDecisionToday import ActionDecisionToday
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 employees_reader = EmployeesReader()
@@ -28,8 +27,7 @@ class EmployeesCreator:
                     employee.telegram_username = telegram_username
                     await request.commit()
                     logger.info(f"Telegram username для telegram_id '{telegram_id}' обновлен на '{telegram_username}'.")
-                else:
-                    logger.info(f"Пользователь с telegram_id '{telegram_id}' уже существует и не требует обновления.")
+
             else:
                 # Создать нового сотрудника
                 request.add(Employees(
@@ -172,7 +170,7 @@ class SchedulerTasksCreator:
 class ClearInputDataCreator:
     @staticmethod
     async def create_clear_data():
-        """Очищает данные из исходной таблицы и сохраняет в clear_input_table"""
+        """Формирует данные в таблице ClearInputData """
         async with db.Session() as request:
             raw_data = await RawInputTable.get_row_table_data()
             for row in raw_data:
@@ -181,7 +179,6 @@ class ClearInputDataCreator:
                     try:
                         time = datetime.datetime.strptime(time_str.strip(), "%H:%M").time()
                     except ValueError:
-                        print(f"Некорректное время: {time_str}")
                         continue
                     request.add(ClearInputData(
                         process_name=row.process_name,

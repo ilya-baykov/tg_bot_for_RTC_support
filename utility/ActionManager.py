@@ -10,7 +10,6 @@ from database.models import Employees, ActionsToday
 from run_app.main_objects import scheduler
 from sent_task_to_emploeyee.sending_messages import add_task_scheduler
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 actions_today_updater = ActionsTodayUpdater()

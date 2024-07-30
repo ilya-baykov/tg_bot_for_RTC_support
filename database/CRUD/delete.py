@@ -5,7 +5,6 @@ from sqlalchemy import delete
 from database.models import ActionsToday, SchedulerTasks, ClearInputData
 from run_app.main_objects import db
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 

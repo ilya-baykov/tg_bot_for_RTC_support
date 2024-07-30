@@ -13,7 +13,6 @@ from database.models import ActionsToday, ClearInputData
 from run_app.main_objects import bot
 from sent_task_to_emploeyee.keyboard import keyboard
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 actions_today_updater = ActionsTodayUpdater()

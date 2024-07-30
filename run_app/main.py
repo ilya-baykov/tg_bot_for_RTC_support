@@ -1,22 +1,20 @@
 import asyncio
 import datetime
-import logging
 import platform
-from os import environ
+from os import environ, getcwd
 
 from database.CRUD.delete import ActionsTodayDeleter, SchedulerTasksDeleter, ClearInputDataDeleter
-from main_objects import start_scheduler, scheduler, db, load_json
+from logger_settings.setup_logger import setup_logger
+from main_objects import start_scheduler, scheduler, load_json
 from run_app.bot_running import start_bot
 from database.CRUD.read import ActionsTodayReader
 from database.CRUD.сreate import ActionsTodayCreator, ClearInputDataCreator
 from sent_task_to_emploeyee.sending_messages import add_task_scheduler
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 
 async def updating_daily_tasks():
     """Функция, которая будет запускаться каждый день для формирования актуальных задач"""
+    logger = setup_logger()  # Загрузка настроек логирования
 
     await ActionsTodayDeleter().clear_table()
     await SchedulerTasksDeleter().clear_table()
@@ -25,8 +23,8 @@ async def updating_daily_tasks():
     # Проверка рабочего дня
     if str(datetime.date.today()) not in (await load_json(path=environ.get('JSON_PATH', 'define me!')))['dates']:
 
-        await ClearInputDataCreator().create_clear_data()  # Очищаю данные из сырой таблицы raw_input_table
-        await ActionsTodayCreator().create_new_actions()  # Считываем входную таблицу и формируем актуальные задачи
+        await ClearInputDataCreator().create_clear_data()  # Формирует данные в таблице ClearInputData
+        await ActionsTodayCreator().create_new_actions()  # Считываем ClearInputData   и формируем актуальные задачи
 
         pending_actions = await ActionsTodayReader().get_pending_actions()  # Получаем все задачи, ожидающие отправки
         for action in pending_actions:
@@ -39,19 +37,20 @@ async def updating_daily_tasks():
 
 async def preparation_for_launch():
     # await db.reset_database()  # Очищает БД
-    await db.create_db()  # Создает все модели в БД
+    # await db.create_db()  # Создает все модели в БД
 
     await start_scheduler(scheduler)  # Запуск планировщика заданий
     await updating_daily_tasks()  # Формирование актуальных задач
 
     # Добавляем задачу, которая будет выполняться каждый день в 00:00:00
-    scheduler.add_job(updating_daily_tasks, trigger="cron", hour=0, minute=0, second=0)
+    scheduler.add_job(updating_daily_tasks, trigger="cron", hour=0, minute=0, second=0, misfire_grace_time=60)
 
     await start_bot()
 
 
 if __name__ == '__main__':
-
+    print("Бот запущен")
+    print("Текущая директория:", getcwd())
     try:
         # Установите политику цикла событий для Windows
         if platform.system() == 'Windows':
@@ -60,6 +59,3 @@ if __name__ == '__main__':
         asyncio.run(preparation_for_launch())
     except Exception as e:
         print(e)
-
-
-

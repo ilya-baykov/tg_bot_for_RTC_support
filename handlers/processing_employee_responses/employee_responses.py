@@ -10,7 +10,6 @@ from database.enums import FinalStatus
 from handlers.processing_employee_responses.state import UserResponse
 from utility.ActionManager import ActionManager
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 user_answer = Router()

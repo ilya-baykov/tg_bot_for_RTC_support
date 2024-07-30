@@ -1,4 +1,3 @@
-import logging
 import calendar
 import re
 from datetime import datetime

@@ -7,7 +7,6 @@ from run_app.main_objects import db
 from database.models import *
 from exeptions import *
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -30,9 +29,8 @@ class EmployeesReader:
 
             result = await request.execute(query)
             employee = result.scalar_one_or_none()
-            if employee:
-                logger.info(f"Найден сотрудник: {employee.name}")
-            else:
+
+            if not employee:
                 logger.info(f"Сотрудник не найден. Поиск по {telegram_id}, {telegram_username} ")
             return employee
 
@@ -43,10 +41,7 @@ class EmployeesReader:
             query = select(EmployeesContact).filter_by(phone_number=phone_number)
             result = await request.execute(query)
             employee = result.scalar_one_or_none()
-            if employee:
-                logger.info(
-                    f"По номеру телефона: {phone_number} был найден сотрудник №{employee.id} - {employee.fullname}")
-            else:
+            if not employee:
                 logger.info(f"По номеру телефона: {phone_number} не было найдено сотрудников")
 
             return employee
@@ -58,9 +53,7 @@ class EmployeesReader:
             query = select(Employees).filter_by(id=employee_id)
             result = await request.execute(query)
             employee = result.scalar_one_or_none()
-            if employee:
-                logger.info(f"По Первичному ключу: {employee_id} получен сотрудник {employee.name}")
-            else:
+            if not employee:
                 logger.info(f"По Первичному ключу: {employee_id} не был найден  сотрудник")
 
             return employee
@@ -143,9 +136,7 @@ class ActionsTodayReader:
             result = await request.execute(query)
             sent_task = result.scalar_one_or_none()
 
-            if sent_task:
-                logger.info(f"У сотрудника №: {employee_id} есть действие со статусом 'Отправлено' - №{sent_task}")
-            else:
+            if not sent_task:
                 logger.info(f"У сотрудника №: {employee_id} нет действий со статусом 'Отправлено'")
 
             return sent_task
