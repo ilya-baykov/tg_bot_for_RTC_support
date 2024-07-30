@@ -5,7 +5,6 @@ from aiogram.types import Message
 
 from database.CRUD.read import EmployeesReader, UserAccessReader
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 

@@ -17,7 +17,6 @@ from handlers.filters_general import RegisteredUser
 from run_app.main_objects import scheduler
 from sent_task_to_emploeyee.keyboard import keyboard
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 edit_router = Router()

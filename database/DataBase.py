@@ -5,7 +5,6 @@ from database.models import *
 
 import logging
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 

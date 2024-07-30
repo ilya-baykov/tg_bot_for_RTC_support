@@ -3,9 +3,7 @@ import logging
 from aiogram.filters import BaseFilter
 from aiogram.types import Message
 
-from database.CRUD.read import UserAccessReader
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 

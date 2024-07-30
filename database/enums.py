@@ -27,7 +27,7 @@ class EmployeesStatus(enum.Enum):
 
 class FinalStatus(enum.Enum):
     successfully = "Успешно"
-    failed = "Провалено"
+    failed = "Отклонено"
 
 
 class SchedulerStatus(enum.Enum):

@@ -6,7 +6,6 @@ from database.models import ActionsToday, UserAccess, SchedulerTasks, Report
 
 from run_app.main_objects import db
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
