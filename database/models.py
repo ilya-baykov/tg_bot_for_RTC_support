@@ -97,7 +97,6 @@ class Report(Base):
 
     status: Mapped[str_50]
 
-
     comment: Mapped[str_512]
 
 
@@ -107,3 +106,32 @@ class UserAccess(Base):
     telegram_id: Mapped[str_50]  # идентификатор телеграмма сотрудника
     user_status: Mapped[UserStatus] = mapped_column(default=UserStatus.available)  # Статус пользователя
     number_of_attempts: Mapped[int] = mapped_column(default=0)  # Количество попыток авторизации
+
+
+class ProcessDirectory(Base):
+    __tablename__ = "process_directory"
+    process_name: Mapped[str_50] = mapped_column(primary_key=True)
+    developer: Mapped[str_100]  # Разработчик, отвечающий за процесс
+    jira_link: Mapped[str_100]  # Ссылка на робота в Jira
+    jira_issue: Mapped[str_100] = mapped_column(nullable=True)  # Ссылка на задачу в Jira
+    virtual_machine: Mapped[str_100]  # Номер виртуальной машины
+
+
+class OperationLog(Base):
+    __tablename__ = "operation_log"
+
+    id: Mapped[intpk]
+    process_name: Mapped[str_50]  # Номер RPA
+    employee_name: Mapped[str_50]  # Имя сотрудника, отвечающего за процесс
+    error_description: Mapped[str_512]  # Описание ошибки
+    error_date: Mapped[str_50] = mapped_column(nullable=True)  # Дата ошибки в произвольной форме
+    error_reason: Mapped[str_512] = mapped_column(nullable=True)  # Причина ошибки
+    error_solution: Mapped[str_512] = mapped_column(nullable=True)  # Решение ошибки
+    error_type: Mapped[ErrorTypes] = mapped_column(nullable=True)  # Один из вариантов типа ошибок
+    developer: Mapped[str_100] = mapped_column(nullable=True)  # Разработчик, отвечающий за процесс
+    jira_link: Mapped[str_100] = mapped_column(nullable=True)  # Ссылка на робота в Jira
+    decision_date: Mapped[str_50] = mapped_column(nullable=True)  # Дата устранения ошибки в произвольной форме
+    OTRS_ticket: Mapped[str_100] = mapped_column(nullable=True)  # Ссылка на тикет в OTRS
+    jira_issue: Mapped[str_100] = mapped_column(nullable=True)  # Ссылка на задачу в Jira
+    virtual_machine: Mapped[str_100]  # Номер виртуальной машины
+    execution_time: Mapped[str_50] = mapped_column(nullable=True)  # Время выполнения в ч.
