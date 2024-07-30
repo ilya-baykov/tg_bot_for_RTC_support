@@ -253,3 +253,18 @@ class RawInputTable:
             data = result.scalars().all()
             logger.info(f"В исходной таблице {len(data)} строк")
             return data
+
+
+class ProcessDirectoryReader:
+    @staticmethod
+    async def get_process(process_name: str):
+        """Возвращает объект процесса по его имени из таблицы process_directory"""
+        async with db.Session() as request:
+            query = select(ProcessDirectory).filter_by(process_name=process_name)
+            result = await request.execute(query)
+            process = result.scalar_one_or_none()
+            if process:
+                logger.info(f"В таблице process_directory был найден процесс {process_name}")
+            else:
+                logger.warning(f"В таблице process_directory не найден процесс {process_name}")
+            return process

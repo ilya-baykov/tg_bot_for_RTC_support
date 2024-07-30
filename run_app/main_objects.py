@@ -14,8 +14,11 @@ logger = logging.getLogger(__name__)
 db = DataBase()
 scheduler = AsyncIOScheduler(timezone="Europe/Moscow")  # Создание планировщика задач
 
-session = AiohttpSession(proxy='http://pxs.rt.ru:3128')
-bot = Bot(token=environ.get('TOKEN', 'define me!'), session=session)
+# session = AiohttpSession(proxy='http://pxs.rt.ru:3128')
+# bot = Bot(token=environ.get('TOKEN', 'define me!'), session=session)
+
+
+bot = Bot(token=environ.get('TOKEN', 'define me!'))
 
 
 async def start_scheduler(scheduler):

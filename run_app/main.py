@@ -1,11 +1,11 @@
 import asyncio
 import datetime
 import platform
-from os import environ, getcwd
+from os import environ
 
 from database.CRUD.delete import ActionsTodayDeleter, SchedulerTasksDeleter, ClearInputDataDeleter
 from logger_settings.setup_logger import setup_logger
-from main_objects import start_scheduler, scheduler, load_json
+from main_objects import start_scheduler, scheduler, load_json, db
 from run_app.bot_running import start_bot
 from database.CRUD.read import ActionsTodayReader
 from database.CRUD.сreate import ActionsTodayCreator, ClearInputDataCreator
@@ -50,7 +50,6 @@ async def preparation_for_launch():
 
 if __name__ == '__main__':
     print("Бот запущен")
-    print("Текущая директория:", getcwd())
     try:
         # Установите политику цикла событий для Windows
         if platform.system() == 'Windows':

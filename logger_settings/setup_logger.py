@@ -1,4 +1,4 @@
-from logging import getLogger, basicConfig, DEBUG, FileHandler
+from logging import getLogger, basicConfig, DEBUG, FileHandler, StreamHandler
 from datetime import datetime
 import os
 
@@ -9,8 +9,13 @@ os.makedirs(LOGS_DIR, exist_ok=True)  # Проверка наличия папк
 
 def setup_logger():
     logger = getLogger()
+    # Запись в файл
     log_file_path = os.path.join(LOGS_DIR, f"Logger_{datetime.today().strftime('%d_%m_%Y')}.log")
     file_handler = FileHandler(log_file_path, mode="a")
     file_handler.setLevel(DEBUG)
-    basicConfig(level=DEBUG, format=LOG_FORMAT, handlers=[file_handler])
+
+    # Запись в консоль
+    console_handler = StreamHandler()
+    console_handler.setLevel(DEBUG)
+    basicConfig(level=DEBUG, format=LOG_FORMAT, handlers=[file_handler, console_handler])
     return logger
