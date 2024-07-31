@@ -1,6 +1,6 @@
 import logging
+import difflib
 from typing import List
-
 from sqlalchemy import select, asc, desc, func
 
 from run_app.main_objects import db
@@ -257,6 +257,16 @@ class RawInputTable:
 
 class ProcessDirectoryReader:
     @staticmethod
+    async def get_all_processes():
+        """Возвращает все процессы из таблицы process_directory """
+        async with db.Session() as request:
+            query = select(ProcessDirectory)
+            result = await request.execute(query)
+            processes = result.scalars().all()
+            logger.info(f"get_all_processes вернул {len(processes)} процессов из process_directory ")
+            return processes
+
+    @staticmethod
     async def get_process(process_name: str):
         """Возвращает объект процесса по его имени из таблицы process_directory"""
         async with db.Session() as request:
@@ -268,3 +278,11 @@ class ProcessDirectoryReader:
             else:
                 logger.warning(f"В таблице process_directory не найден процесс {process_name}")
             return process
+
+    @staticmethod
+    async def get_similar_process(process_name: str):
+        """Возвращает наиболее подходящее название процесса используя пользовательский вариант"""
+        all_processes_objects: List[ProcessDirectory] = await ProcessDirectoryReader.get_all_processes()
+        all_processes: List[str] = [process.process_name for process in all_processes_objects]
+        similar_processes = difflib.get_close_matches(process_name, all_processes, n=1, cutoff=0.6)
+        return similar_processes[0] if similar_processes else None

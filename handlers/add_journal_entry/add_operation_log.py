@@ -24,8 +24,8 @@ async def command_add_operation_log(message: Message, state: FSMContext):
     """Начинаем заполнение данных для журнала эксплуатации"""
     await message.answer(
         "📝 Для добавления записи в журнал эксплуатации необходимо поочередно заполнить поля таблицы.\n\n"
-        "🔄 Если какое-то поле вы заполнили неправильно, введите 'назад' для повторного заполнения.\n\n"
-        "❌ Для завершения заполнения формы введите 'exit'."
+        "🔄 Если какое-то поле вы заполнили неправильно, нажмите клавишу 'назад' для повторного заполнения.\n\n"
+        "❌ Для завершения заполнения формы нажмите клавишу 'Выход'."
     )
     await message.answer(f"Введите название процесса (без пробелов)")
     await state.set_state(AddOperationLogState.enter_process_name)
@@ -43,8 +43,16 @@ async def enter_process_name(message: Message, state: FSMContext):
                              reply_markup=add_journal_log_kb(back_button=True, exit_button=True))
         await state.set_state(AddOperationLogState.enter_error_description)
     else:
-        await message.answer(f"Процесс '{message.text}' не найден. Попробуйте ввести номер RPA без пробелов.",
-                             reply_markup=add_journal_log_kb(exit_button=True))
+        similar_process = await ProcessDirectoryReader().get_similar_process(message.text)
+        if similar_process:
+            await message.answer(
+                f"Процесс '{message.text}' не найден."
+                f"\nВозможно, вы имели в виду '{similar_process}'? "
+                f"\nПопробуйте ввести номер RPA еще раз.",
+                reply_markup=add_journal_log_kb(exit_button=True))
+        else:
+            await message.answer(f"Процесс '{message.text}' не найден.\nПопробуйте ввести номер RPA без пробелов.",
+                                 reply_markup=add_journal_log_kb(exit_button=True))
         await state.set_state(AddOperationLogState.enter_process_name)
 
 
