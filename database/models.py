@@ -127,7 +127,7 @@ class OperationLog(Base):
     error_date: Mapped[str_50] = mapped_column(nullable=True)  # Дата ошибки в произвольной форме
     error_reason: Mapped[str_512] = mapped_column(nullable=True)  # Причина ошибки
     error_solution: Mapped[str_512] = mapped_column(nullable=True)  # Решение ошибки
-    error_type: Mapped[ErrorTypes] = mapped_column(nullable=True)  # Один из вариантов типа ошибок
+    error_type: Mapped[str_512] = mapped_column(nullable=True)  # Один из вариантов типа ошибок
     developer: Mapped[str_100] = mapped_column(nullable=True)  # Разработчик, отвечающий за процесс
     jira_link: Mapped[str_100] = mapped_column(nullable=True)  # Ссылка на робота в Jira
     decision_date: Mapped[str_50] = mapped_column(nullable=True)  # Дата устранения ошибки в произвольной форме

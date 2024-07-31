@@ -191,3 +191,31 @@ class ClearInputDataCreator:
                     ))
                     logger.info(f"В таблицу clear_input_table была добавлена запись {row.process_name}:{time}")
             await request.commit()
+
+
+class OperationLogCreator:
+    @staticmethod
+    async def create_new_log(process_name: str, employee_name: str, error_description: str, error_date: str | None,
+                             error_reason: str | None, error_solution: str | None,
+                             error_type: str | None, developer: str | None, jira_link: str | None,
+                             decision_date: str | None, jira_issue: str | None, virtual_machine: str,
+                             execution_time: str | None):
+        async with db.Session() as request:
+            request.add(OperationLog(
+                process_name=process_name,  # Номер RPA
+                employee_name=employee_name,  # Имя сотрудника, отвечающего за процесс
+                error_description=error_description,  # Описание ошибки
+                error_date=error_date,  # Дата ошибки в произвольной форме
+                error_reason=error_reason,  # Причина ошибки
+                error_solution=error_solution,  # Решение ошибки
+                error_type=error_type,  # Один из вариантов типа ошибок
+                developer=developer,  # Разработчик, отвечающий за процесс
+                jira_link=jira_link,  # Ссылка на робота в Jira
+                decision_date=decision_date,  # Дата устранения ошибки в произвольной форме
+                OTRS_ticket=None,  # Ссылка на тикет в OTRS
+                jira_issue=jira_issue,  # Ссылка на задачу в Jira
+                virtual_machine=virtual_machine,  # Номер виртуальной машины
+                execution_time=execution_time  # Время выполнения в ч.
+            ))
+            await request.commit()
+            logger.info(f"Добавлена запись в журнал эксплуатации. Имя процесса - {process_name}")
