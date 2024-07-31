@@ -1,22 +1,16 @@
-from typing import List
+from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
-from aiogram.filters.callback_data import CallbackData
-from aiogram.types import InlineKeyboardButton
-from aiogram.utils.keyboard import InlineKeyboardBuilder
-
-
-class ProcessInfo(CallbackData, prefix="process_info_inline_kb"):
-    process_name: str
+SENT_BUTTON_TEXT = "Отправить"
+BACK_BUTTON_TEXT = "Назад"
+EXIT_BUTTON_TEXT = "Выход"
 
 
-async def inline_processes(employee_processes: List):
-    """
-    :param employee_processes: Все процессы сотрудника
-    :return: Объект - inline клавиатура
-    """
-    keyboard = InlineKeyboardBuilder()
-    for processes in employee_processes:
-        callback_data = ProcessInfo(process_name=processes.name)
-        keyboard.add(InlineKeyboardButton(text=f"{processes.process_name}",
-                                          callback_data=callback_data.pack()))
-    return keyboard.adjust(1).as_markup()
+def add_journal_log_kb(back_button: bool = False, exit_button: bool = False, sent_button: bool = False):
+    builder = ReplyKeyboardBuilder()
+    if back_button: builder.button(text="Назад")
+    if sent_button: builder.button(text="Отправить")
+    if exit_button: builder.button(text="Завершение заполнения формы (Выход)")
+    builder.adjust(2, 1)
+    return builder.as_markup(resize_keyboard=True,
+                             input_field_placeholder="Нажмите на одну из кнопок",
+                             one_time_keyboard=True)

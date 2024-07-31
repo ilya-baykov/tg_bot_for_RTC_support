@@ -1,9 +1,8 @@
-import enum
-from typing import Dict, Any
-
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message
+
+from handlers.add_journal_entry.keyboard import BACK_BUTTON_TEXT, SENT_BUTTON_TEXT
 
 
 async def saving_log_entry(message: Message, state: FSMContext):
@@ -43,17 +42,13 @@ async def handle_state(message: Message, state: FSMContext, data_key: str,
 
     :return:  Текст ответа для пользователя
     """
-    if message.text.lower() != "назад":
-        await state.update_data({data_key: message.text})
-        if next_state:
-
-            if next_state != AddOperationLogState.saving_log_entry:
-                await state.set_state(next_state)
-            else:
-                await saving_log_entry(message, state)
-
-            return next_message
-
-    else:
+    if message.text == BACK_BUTTON_TEXT:
         await state.set_state(previous_state)
         return previous_message
+    elif message.text == SENT_BUTTON_TEXT:
+        return SENT_BUTTON_TEXT
+    else:
+        await state.update_data({data_key: message.text})
+        if next_state:
+            await state.set_state(next_state)
+            return next_message
