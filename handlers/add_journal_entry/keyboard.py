@@ -21,5 +21,5 @@ def add_journal_log_kb(back_button: bool = True, exit_button: True = True, sent_
     if exit_button: builder.button(text=EXIT_BUTTON_TEXT)
     builder.adjust(2, 3, 2) if error_types else builder.adjust(2)
     return builder.as_markup(resize_keyboard=True,
-                             input_field_placeholder="Нажмите на одну из кнопок",
+                             input_field_placeholder="Нажмите на одну из кнопок или введите текст",
                              one_time_keyboard=True)
