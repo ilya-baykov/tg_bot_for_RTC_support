@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime, timedelta
-from typing import Tuple, Union
+from typing import Tuple, Union, NamedTuple
 
 from database.CRUD.update import ActionsTodayUpdater
 from database.CRUD.сreate import employees_reader, actions_today_reader, employees_updater, clear_input_table_reader, \
@@ -14,6 +14,12 @@ logger = logging.getLogger(__name__)
 
 actions_today_updater = ActionsTodayUpdater()
 report_creator = ReportCreator()
+
+
+class AfterFillingReportReturn(NamedTuple):
+    message: str
+    employee: Employees | None
+    sent_process: ActionsToday | None
 
 
 class ActionManager:
@@ -54,7 +60,7 @@ class ActionManager:
             await add_task_scheduler(action_task=next_process, scheduler=scheduler)
 
     @staticmethod
-    async def filling_out_report(user_telegram_id: str, status: FinalStatus, comment: str) -> str:
+    async def filling_out_report(user_telegram_id: str, status: FinalStatus, comment: str) -> AfterFillingReportReturn:
         """Создает новую строку в результирующей таблице"""
         employee, sent_process = await ActionManager.check_user_response(user_telegram_id)
         if employee and sent_process:
@@ -79,8 +85,13 @@ class ActionManager:
                 comment=comment
             )
             await ActionManager.update_status(employee, sent_process)
-            return "Отлично, мы записали это в БД"
+            return AfterFillingReportReturn(message="Отлично, мы записали это в БД",
+                                            employee=employee,
+                                            sent_process=sent_process)
         elif employee and sent_process is None:
-            return "Вам не было отправлено сообщений"
+            return AfterFillingReportReturn(message="Вам не было отправлено сообщений",
+                                            employee=None, sent_process=None)
         else:
-            return "Для вас нет доступа к этому функционалу. Попробуйте зарегистрироваться с помощью команды start"
+            return AfterFillingReportReturn(
+                message="Для вас нет доступа к этому функционалу. Попробуйте зарегистрироваться с помощью команды start",
+                employee=None, sent_process=None)

@@ -90,6 +90,7 @@ class ClearInputTableReader:
 
     @staticmethod
     async def get_input_task_by_id(input_data_id: int):
+        """Возвращает процесс из таблицы ClearInputData по id """
         async with db.Session() as request:
             query = select(ClearInputData).filter_by(id=input_data_id)
             result = await request.execute(query)
