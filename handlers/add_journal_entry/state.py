@@ -2,7 +2,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message
 
-from handlers.add_journal_entry.keyboard import BACK_BUTTON_TEXT, SENT_BUTTON_TEXT, SKIP_BUTTON_TEXT
+from handlers.add_journal_entry.constant_text import BACK_BUTTON_TEXT, SENT_BUTTON_TEXT, SKIP_BUTTON_TEXT
 
 
 async def saving_log_entry(message: Message, state: FSMContext):
@@ -51,7 +51,7 @@ async def handle_state(message: Message, state: FSMContext, data_key: str,
     elif message.text == SENT_BUTTON_TEXT:
         return SENT_BUTTON_TEXT
     else:
-        await state.update_data({data_key: message.text.replace(SKIP_BUTTON_TEXT, "")})
+        await state.update_data({data_key: message.text if message.text != SKIP_BUTTON_TEXT else None})
         if next_state:
             await state.set_state(next_state)
             return next_message

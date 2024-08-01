@@ -132,5 +132,5 @@ class OperationLog(Base):
     decision_date: Mapped[str_50] = mapped_column(nullable=True)  # Дата устранения ошибки в произвольной форме
     OTRS_ticket: Mapped[str_100] = mapped_column(nullable=True)  # Ссылка на тикет в OTRS
     jira_issue: Mapped[str_100] = mapped_column(nullable=True)  # Ссылка на задачу в Jira
-    virtual_machine: Mapped[str_100] = mapped_column(nullable=True)  # Номер виртуальной машины
+    virtual_machine: Mapped[str_100]  # Номер виртуальной машины
     execution_time: Mapped[str_50] = mapped_column(nullable=True)  # Время выполнения в ч.

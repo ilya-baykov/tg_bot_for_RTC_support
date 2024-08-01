@@ -8,7 +8,8 @@ from aiogram.types import Message
 
 from database.CRUD.read import EmployeesReader, ProcessDirectoryReader
 from database.CRUD.сreate import OperationLogCreator
-from handlers.add_journal_entry.keyboard import add_journal_log_kb, EXIT_BUTTON_TEXT, SENT_BUTTON_TEXT, SKIP_BUTTON_TEXT
+from handlers.add_journal_entry.constant_text import EXIT_BUTTON_TEXT, SENT_BUTTON_TEXT
+from handlers.add_journal_entry.keyboard import add_journal_log_kb
 from handlers.add_journal_entry.state import AddOperationLogState, handle_state
 from handlers.filters_general import RegisteredUser
 from utility.ActionManager import ActionManager
@@ -23,13 +24,14 @@ class ErrorTypes(Enum):
     STARTUP_ERROR = "Ошибка запуска (Проблемы ВМ, оркестратора, координатора)	"
     BUSINESS_ERROR = "Бизнес ошибка (входные данные, пользователь, изменение БП)"
     INFRASTRUCTURE_ERROR = "Инфраструктурная ошибка (сбой систем, доступов, серверов)"
-    NO_VALUE = "Нет значения"
+    NO_VALUE = ""
 
     @classmethod
-    def get_full_error_type(cls, description: str):
-        for error_type in cls:
-            if description in error_type.value:
-                return error_type.value
+    def get_full_error_type(cls, description: str | None):
+        if description:
+            for error_type in cls:
+                if description in error_type.value:
+                    return error_type.value
         return None
 
 
@@ -47,8 +49,8 @@ async def command_add_operation_log(message: Message, state: FSMContext):
         "🔄 Если какое-то поле вы заполнили неправильно, нажмите клавишу 'назад' для повторного заполнения.\n\n"
         "❌ Для завершения заполнения формы нажмите клавишу 'Выход'."
     )
-    await message.answer(f"Введите название процесса (без пробелов)")
     await state.set_state(AddOperationLogState.enter_process_name)
+    await message.answer(f"Введите название процесса (без пробелов)")
 
 
 @add_journal_router.message(AddOperationLogState.enter_process_name)
@@ -59,9 +61,9 @@ async def enter_process_name(message: Message, state: FSMContext):
     process = await ProcessDirectoryReader().get_process(message.text)
     if process:
         await state.update_data({"process": process, "employee_name": employee.name})
-        await message.answer("Введите описание ошибки",
-                             reply_markup=add_journal_log_kb())
         await state.set_state(AddOperationLogState.enter_error_description)
+        await message.answer("Введите описание ошибки",
+                             reply_markup=await add_journal_log_kb(state))
     else:
         similar_process = await ProcessDirectoryReader().get_similar_process(message.text)
         if similar_process:
@@ -69,11 +71,10 @@ async def enter_process_name(message: Message, state: FSMContext):
                 f"Процесс '{message.text}' не найден."
                 f"\nВозможно, вы имели в виду '{similar_process}'? "
                 f"\nПопробуйте ввести номер RPA еще раз.",
-                reply_markup=add_journal_log_kb(back_button=False))
+                reply_markup=await add_journal_log_kb(state))
         else:
             await message.answer(f"Процесс '{message.text}' не найден.\nПопробуйте ввести номер RPA без пробелов.",
-                                 reply_markup=add_journal_log_kb())
-        await state.set_state(AddOperationLogState.enter_process_name)
+                                 reply_markup=await add_journal_log_kb(state))
 
 
 @add_journal_router.message(AddOperationLogState.enter_error_description)
@@ -85,7 +86,7 @@ async def enter_error_description(message: Message, state: FSMContext):
                                 next_state=AddOperationLogState.enter_error_date,
                                 next_message="Введите дату ошибки")
 
-    await message.answer(answer, reply_markup=add_journal_log_kb())
+    await message.answer(answer, reply_markup=await add_journal_log_kb(state))
 
 
 @add_journal_router.message(AddOperationLogState.enter_error_date)
@@ -96,7 +97,7 @@ async def enter_error_date(message: Message, state: FSMContext):
                                 previous_message="Введите описание ошибки",
                                 next_state=AddOperationLogState.enter_error_reason,
                                 next_message="Введите причину ошибки")
-    await message.answer(answer, reply_markup=add_journal_log_kb(skip_button=True))
+    await message.answer(answer, reply_markup=await add_journal_log_kb(state))
 
 
 @add_journal_router.message(AddOperationLogState.enter_error_reason)
@@ -107,7 +108,7 @@ async def enter_error_reason(message: Message, state: FSMContext):
                                 previous_message="Введите дату ошибки",
                                 next_state=AddOperationLogState.enter_error_solution,
                                 next_message="Введите решение ошибки")
-    await message.answer(answer, reply_markup=add_journal_log_kb(skip_button=True))
+    await message.answer(answer, reply_markup=await add_journal_log_kb(state))
 
 
 @add_journal_router.message(AddOperationLogState.enter_error_solution)
@@ -118,7 +119,7 @@ async def enter_error_solution(message: Message, state: FSMContext):
                                 previous_message="Введите причину ошибки",
                                 next_state=AddOperationLogState.enter_date_solution,
                                 next_message="Введите  дату решения ошибки")
-    await message.answer(answer, reply_markup=add_journal_log_kb(skip_button=True))
+    await message.answer(answer, reply_markup=await add_journal_log_kb(state))
 
 
 @add_journal_router.message(AddOperationLogState.enter_date_solution)
@@ -129,7 +130,7 @@ async def enter_date_solution(message: Message, state: FSMContext):
                                 previous_message="Введите решение ошибки",
                                 next_state=AddOperationLogState.enter_ticket_OTRS,
                                 next_message="Введите тикет в OTRS")
-    await message.answer(answer, reply_markup=add_journal_log_kb(skip_button=True))
+    await message.answer(answer, reply_markup=await add_journal_log_kb(state))
 
 
 @add_journal_router.message(AddOperationLogState.enter_ticket_OTRS)
@@ -141,7 +142,7 @@ async def enter_ticket_OTRS(message: Message, state: FSMContext):
                                 next_state=AddOperationLogState.enter_virtual_machine,
                                 next_message="Введите номер ВМ")
 
-    await message.answer(answer, reply_markup=add_journal_log_kb(skip_button=True))
+    await message.answer(answer, reply_markup=await add_journal_log_kb(state))
 
 
 @add_journal_router.message(AddOperationLogState.enter_virtual_machine)
@@ -152,7 +153,7 @@ async def enter_virtual_machine(message: Message, state: FSMContext):
                                 previous_message="Введите тикет в OTRS",
                                 next_state=AddOperationLogState.enter_execution_time,
                                 next_message="Введите время выполнения,ч")
-    await message.answer(answer, reply_markup=add_journal_log_kb(skip_button=True))
+    await message.answer(answer, reply_markup=await add_journal_log_kb(state))
 
 
 @add_journal_router.message(AddOperationLogState.enter_execution_time)
@@ -163,7 +164,7 @@ async def enter_execution_time(message: Message, state: FSMContext):
                                 previous_message="Введите номер ВМ",
                                 next_state=AddOperationLogState.enter_type_error,
                                 next_message="Введите тип ошибки")
-    await message.answer(answer, reply_markup=add_journal_log_kb(error_types=True))
+    await message.answer(answer, reply_markup=await add_journal_log_kb(state))
 
 
 @add_journal_router.message(AddOperationLogState.enter_type_error)
@@ -174,7 +175,7 @@ async def enter_type_error(message: Message, state: FSMContext):
                                 previous_message="Введите дату решения ошибки",
                                 next_state=AddOperationLogState.saving_log_entry,
                                 next_message="Все поля заполнены")
-    await message.answer(answer, reply_markup=add_journal_log_kb(sent_button=True))
+    await message.answer(answer, reply_markup=await add_journal_log_kb(state))
 
 
 @add_journal_router.message(AddOperationLogState.saving_log_entry)
@@ -217,7 +218,7 @@ async def save_journal_log(message: Message, state: FSMContext):
                 employee, sent_process = await ActionManager.check_user_response(str(message.from_user.id))
                 await ActionManager.update_status(employee, sent_process)
     else:
-        await message.answer(answer, reply_markup=add_journal_log_kb(error_types=True))
+        await message.answer(answer, reply_markup=await add_journal_log_kb(state))
 
 
 def register_add_operation_log_handler(dp):
