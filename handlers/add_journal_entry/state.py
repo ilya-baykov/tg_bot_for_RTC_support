@@ -2,7 +2,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message
 
-from handlers.add_journal_entry.keyboard import BACK_BUTTON_TEXT, SENT_BUTTON_TEXT
+from handlers.add_journal_entry.keyboard import BACK_BUTTON_TEXT, SENT_BUTTON_TEXT, SKIP_BUTTON_TEXT
 
 
 async def saving_log_entry(message: Message, state: FSMContext):
@@ -15,6 +15,9 @@ class AddOperationLogState(StatesGroup):
     enter_process_name = State()
     enter_error_description = State()
     enter_error_date = State()
+    enter_ticket_OTRS = State()
+    enter_virtual_machine = State()
+    enter_execution_time = State()
     enter_error_reason = State()
     enter_error_solution = State()
     enter_date_solution = State()
@@ -48,7 +51,7 @@ async def handle_state(message: Message, state: FSMContext, data_key: str,
     elif message.text == SENT_BUTTON_TEXT:
         return SENT_BUTTON_TEXT
     else:
-        await state.update_data({data_key: message.text})
+        await state.update_data({data_key: message.text.replace(SKIP_BUTTON_TEXT, "")})
         if next_state:
             await state.set_state(next_state)
             return next_message

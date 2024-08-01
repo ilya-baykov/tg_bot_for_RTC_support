@@ -79,7 +79,7 @@ class ClearInputTableReader:
 
                 select(ClearInputData)
                 .filter(ClearInputData.scheduled_time > datetime.datetime.now().time())
-                .order_by(asc(ClearInputData.scheduled_time), asc(ClearInputData.id))
+                .order_by(asc(ClearInputData.scheduled_time),asc(ClearInputData.process_name), asc(ClearInputData.id))
 
             )
             result = await request.execute(query)

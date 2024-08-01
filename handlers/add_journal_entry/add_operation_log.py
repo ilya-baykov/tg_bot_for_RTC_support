@@ -8,7 +8,7 @@ from aiogram.types import Message
 
 from database.CRUD.read import EmployeesReader, ProcessDirectoryReader
 from database.CRUD.сreate import OperationLogCreator
-from handlers.add_journal_entry.keyboard import add_journal_log_kb, EXIT_BUTTON_TEXT, SENT_BUTTON_TEXT
+from handlers.add_journal_entry.keyboard import add_journal_log_kb, EXIT_BUTTON_TEXT, SENT_BUTTON_TEXT, SKIP_BUTTON_TEXT
 from handlers.add_journal_entry.state import AddOperationLogState, handle_state
 from handlers.filters_general import RegisteredUser
 from utility.ActionManager import ActionManager
@@ -96,7 +96,7 @@ async def enter_error_date(message: Message, state: FSMContext):
                                 previous_message="Введите описание ошибки",
                                 next_state=AddOperationLogState.enter_error_reason,
                                 next_message="Введите причину ошибки")
-    await message.answer(answer, reply_markup=add_journal_log_kb())
+    await message.answer(answer, reply_markup=add_journal_log_kb(skip_button=True))
 
 
 @add_journal_router.message(AddOperationLogState.enter_error_reason)
@@ -107,7 +107,7 @@ async def enter_error_reason(message: Message, state: FSMContext):
                                 previous_message="Введите дату ошибки",
                                 next_state=AddOperationLogState.enter_error_solution,
                                 next_message="Введите решение ошибки")
-    await message.answer(answer, reply_markup=add_journal_log_kb())
+    await message.answer(answer, reply_markup=add_journal_log_kb(skip_button=True))
 
 
 @add_journal_router.message(AddOperationLogState.enter_error_solution)
@@ -118,7 +118,7 @@ async def enter_error_solution(message: Message, state: FSMContext):
                                 previous_message="Введите причину ошибки",
                                 next_state=AddOperationLogState.enter_date_solution,
                                 next_message="Введите  дату решения ошибки")
-    await message.answer(answer, reply_markup=add_journal_log_kb())
+    await message.answer(answer, reply_markup=add_journal_log_kb(skip_button=True))
 
 
 @add_journal_router.message(AddOperationLogState.enter_date_solution)
@@ -127,6 +127,40 @@ async def enter_date_solution(message: Message, state: FSMContext):
     answer = await handle_state(message, state, "decision_date",
                                 previous_state=AddOperationLogState.enter_error_solution,
                                 previous_message="Введите решение ошибки",
+                                next_state=AddOperationLogState.enter_ticket_OTRS,
+                                next_message="Введите тикет в OTRS")
+    await message.answer(answer, reply_markup=add_journal_log_kb(skip_button=True))
+
+
+@add_journal_router.message(AddOperationLogState.enter_ticket_OTRS)
+async def enter_ticket_OTRS(message: Message, state: FSMContext):
+    """Получаем Тикет в OTRS"""
+    answer = await handle_state(message, state, "OTRS_ticket",
+                                previous_state=AddOperationLogState.enter_date_solution,
+                                previous_message="Введите дату решения ошибки",
+                                next_state=AddOperationLogState.enter_virtual_machine,
+                                next_message="Введите номер ВМ")
+
+    await message.answer(answer, reply_markup=add_journal_log_kb(skip_button=True))
+
+
+@add_journal_router.message(AddOperationLogState.enter_virtual_machine)
+async def enter_virtual_machine(message: Message, state: FSMContext):
+    """Получаем номер ВМ"""
+    answer = await handle_state(message, state, "virtual_machine",
+                                previous_state=AddOperationLogState.enter_ticket_OTRS,
+                                previous_message="Введите тикет в OTRS",
+                                next_state=AddOperationLogState.enter_execution_time,
+                                next_message="Введите время выполнения,ч")
+    await message.answer(answer, reply_markup=add_journal_log_kb(skip_button=True))
+
+
+@add_journal_router.message(AddOperationLogState.enter_execution_time)
+async def enter_execution_time(message: Message, state: FSMContext):
+    """Получаем время выполнения (ч)"""
+    answer = await handle_state(message, state, "execution_time",
+                                previous_state=AddOperationLogState.enter_virtual_machine,
+                                previous_message="Введите номер ВМ",
                                 next_state=AddOperationLogState.enter_type_error,
                                 next_message="Введите тип ошибки")
     await message.answer(answer, reply_markup=add_journal_log_kb(error_types=True))
@@ -165,8 +199,9 @@ async def save_journal_log(message: Message, state: FSMContext):
                 jira_link=data["process"].jira_link,  # Ссылка на робота в Jira
                 decision_date=data["decision_date"],  # Дата устранения ошибки в произвольной форме
                 jira_issue=data["process"].jira_issue,  # Ссылка на задачу в Jira
-                virtual_machine=data["process"].virtual_machine,  # Номер виртуальной машины
-                execution_time=None  # Время выполнения в ч.
+                virtual_machine=data["virtual_machine"],  # Номер виртуальной машины
+                execution_time=data["execution_time"],  # Время выполнения в ч.
+                OTRS_ticket=data["OTRS_ticket"]  # Тикет в OTRS
             )
             await message.answer(f"Запись успешно добавлена в журнал эксплуатации")
             logger.info(f"Запись : {data['process'].process_name} была успешно добавлена в журнал эксплуатации")
