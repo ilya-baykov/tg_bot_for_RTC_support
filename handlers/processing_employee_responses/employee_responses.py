@@ -51,6 +51,10 @@ async def start_add_journal_entry(message: Message, state: FSMContext):
 
 @user_answer.message(F.text == "Нет", UserResponse.comment)
 async def end_report_entry(message: Message, state: FSMContext):
+    state_data = await state.get_data()
+    if state_data.get('change_status'):
+        employee, sent_process = await ActionManager.check_user_response(str(message.from_user.id))
+        await ActionManager.update_status(employee, sent_process)
     await state.clear()
 
 
@@ -59,11 +63,12 @@ async def write_user_comment(message: Message, state: FSMContext):
     result: AfterFillingReportReturn = await ActionManager.filling_out_report(
         user_telegram_id=str(message.from_user.id),
         status=FinalStatus.failed,
-        comment=message.text)
+        comment=message.text,
+        change_status=False)
 
     await message.answer(result.message)
     await message.answer("Хотите добавить запись в журнал эксплуатации ?", reply_markup=yes_or_no_keyboard)
-    await state.update_data({"after_filling": result})
+    await state.update_data({"change_status": True, "after_filling": result})
 
 
 def register_user_response(dp):

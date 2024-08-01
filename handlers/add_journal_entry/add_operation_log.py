@@ -11,6 +11,7 @@ from database.CRUD.сreate import OperationLogCreator
 from handlers.add_journal_entry.keyboard import add_journal_log_kb, EXIT_BUTTON_TEXT, SENT_BUTTON_TEXT
 from handlers.add_journal_entry.state import AddOperationLogState, handle_state
 from handlers.filters_general import RegisteredUser
+from utility.ActionManager import ActionManager
 
 logger = logging.getLogger(__name__)
 
@@ -175,11 +176,13 @@ async def save_journal_log(message: Message, state: FSMContext):
             logger.info(
                 f"При добавлении записи: {data['process'].process_name} в журнал эксплуатации "
                 f"произошла ошибка {e}")
-        await state.clear()
-
+        finally:
+            await state.clear()
+            if data.get('change_status'):
+                employee, sent_process = await ActionManager.check_user_response(str(message.from_user.id))
+                await ActionManager.update_status(employee, sent_process)
     else:
-        await message.answer(answer,
-                             reply_markup=add_journal_log_kb(error_types=True))
+        await message.answer(answer, reply_markup=add_journal_log_kb(error_types=True))
 
 
 def register_add_operation_log_handler(dp):

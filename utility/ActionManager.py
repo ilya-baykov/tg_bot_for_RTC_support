@@ -60,7 +60,8 @@ class ActionManager:
             await add_task_scheduler(action_task=next_process, scheduler=scheduler)
 
     @staticmethod
-    async def filling_out_report(user_telegram_id: str, status: FinalStatus, comment: str) -> AfterFillingReportReturn:
+    async def filling_out_report(user_telegram_id: str, status: FinalStatus, comment: str,
+                                 change_status: bool = True) -> AfterFillingReportReturn:
         """Создает новую строку в результирующей таблице"""
         employee, sent_process = await ActionManager.check_user_response(user_telegram_id)
         if employee and sent_process:
@@ -84,7 +85,7 @@ class ActionManager:
                 status=status,
                 comment=comment
             )
-            await ActionManager.update_status(employee, sent_process)
+            if change_status: await ActionManager.update_status(employee, sent_process)
             return AfterFillingReportReturn(message="Отлично, мы записали это в БД",
                                             employee=employee,
                                             sent_process=sent_process)
