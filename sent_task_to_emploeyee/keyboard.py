@@ -4,6 +4,7 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 keyboard = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="Выполнено"), KeyboardButton(text="Не выполнено")],
+        [KeyboardButton(text="Отложить")],
     ],
     resize_keyboard=True,
     one_time_keyboard=True

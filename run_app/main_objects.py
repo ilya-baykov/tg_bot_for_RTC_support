@@ -1,12 +1,9 @@
 import logging
 import json
-from os import environ
-
 import aiofiles
+from os import environ
 from aiogram import Bot
-from aiogram.client.session.aiohttp import AiohttpSession
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-
 from database.DataBase import DataBase
 
 logger = logging.getLogger(__name__)
@@ -19,16 +16,6 @@ scheduler = AsyncIOScheduler(timezone="Europe/Moscow")  # Создание пл�
 
 
 bot = Bot(token=environ.get('TOKEN', 'define me!'))
-
-
-async def start_scheduler(scheduler):
-    if scheduler.running:
-        scheduler.shutdown(wait=False)  # Закрываем прошлый планировщик задач
-        logger.info("Прошлые задачи планировщика были очищены")
-
-    scheduler.start()
-    logger.info(f"Планировщик заданий {scheduler} запущен")
-    logger.info("Все предыдущие задачи планировщика были удалены")
 
 
 async def load_json(path: str):

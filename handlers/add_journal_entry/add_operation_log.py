@@ -6,13 +6,16 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from database.CRUD.read import EmployeesReader, ProcessDirectoryReader
+from database.CRUD.read import EmployeesReader, ProcessDirectoryReader, SchedulerTasksReader
 from database.CRUD.сreate import OperationLogCreator
+from database.enums import ActionStatus
 from handlers.add_journal_entry.constant_text import EXIT_BUTTON_TEXT, SENT_BUTTON_TEXT
 from handlers.add_journal_entry.keyboard import add_journal_log_kb
 from handlers.add_journal_entry.state import AddOperationLogState, handle_state
 from handlers.filters_general import RegisteredUser
 from utility.ActionManager import ActionManager
+from run_app.main_objects import scheduler
+from utility.sheduler_functions import pause_scheduler_task, resume_scheduler_task
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +47,12 @@ async def exit_add_operation_log(message: Message, state: FSMContext):
 @add_journal_router.message(RegisteredUser(), Command('add_operation_log'))
 async def command_add_operation_log(message: Message, state: FSMContext):
     """Начинаем заполнение данных для журнала эксплуатации"""
+    employee = await EmployeesReader().get_employee_by_telegram_id_or_username(telegram_id=str(message.from_user.id))
+
+    # Ставим действие планировщика на паузу
+    task_in_scheduler = await SchedulerTasksReader().get_last_task_by_employee(employee_id=employee.id)
+    await pause_scheduler_task(task_in_scheduler)
+
     await message.answer(
         "📝 Для добавления записи в журнал эксплуатации необходимо поочередно заполнить поля таблицы.\n\n"
         "🔄 Если какое-то поле вы заполнили неправильно, нажмите клавишу 'назад' для повторного заполнения.\n\n"
@@ -52,15 +61,18 @@ async def command_add_operation_log(message: Message, state: FSMContext):
     await state.set_state(AddOperationLogState.enter_process_name)
     await message.answer(f"Введите название процесса (без пробелов)")
 
+    if task_in_scheduler:
+        await state.update_data({"scheduler_task_id": task_in_scheduler.id})
+    await state.update_data({"employee_name": employee.name})
+
 
 @add_journal_router.message(AddOperationLogState.enter_process_name)
 async def enter_process_name(message: Message, state: FSMContext):
     """Получаем информацию по процессу и ФИО сотрудника ТП"""
 
-    employee = await EmployeesReader().get_employee_by_telegram_id_or_username(telegram_id=str(message.from_user.id))
     process = await ProcessDirectoryReader().get_process(message.text)
     if process:
-        await state.update_data({"process": process, "employee_name": employee.name})
+        await state.update_data({"process": process})
         await state.set_state(AddOperationLogState.enter_error_description)
         await message.answer("Введите описание ошибки",
                              reply_markup=await add_journal_log_kb(state))
@@ -206,6 +218,8 @@ async def save_journal_log(message: Message, state: FSMContext):
             )
             await message.answer(f"Запись успешно добавлена в журнал эксплуатации")
             logger.info(f"Запись : {data['process'].process_name} была успешно добавлена в журнал эксплуатации")
+            if data.get("scheduler_task_id"):
+                await resume_scheduler_task(data["scheduler_task_id"])
 
         except Exception as e:
             await message.answer(f"При добавлении записи в журнал эксплуатации произошла неизвестная ошибка")
@@ -214,9 +228,6 @@ async def save_journal_log(message: Message, state: FSMContext):
                 f"произошла ошибка {e}")
         finally:
             await state.clear()
-            if data.get('change_status'):
-                employee, sent_process = await ActionManager.check_user_response(str(message.from_user.id))
-                await ActionManager.update_status(employee, sent_process)
     else:
         await message.answer(answer, reply_markup=await add_journal_log_kb(state))
 

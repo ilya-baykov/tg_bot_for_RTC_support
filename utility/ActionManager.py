@@ -43,7 +43,8 @@ class ActionManager:
         return None, None
 
     @staticmethod
-    async def update_status(employee: Employees, sent_process: ActionsToday):
+    async def update_status(employee: Employees, sent_process: ActionsToday,
+                            action_status: ActionStatus = ActionStatus.waiting_to_be_sent):
         """
         Обновляет статусы у сотрудника, получившего сообщение и процесса, который был отправлен и обработан.
         Отправляет действие в планировщик
@@ -56,12 +57,13 @@ class ActionManager:
             next_process = next_sent_processes[0]
             logging.info(f"Следующее действие на отправку: {next_process.id}")
 
-            await actions_today_updater.update_status(next_process, ActionStatus.waiting_to_be_sent)
-            await add_task_scheduler(action_task=next_process, scheduler=scheduler)
+            await actions_today_updater.update_status(next_process, action_status)
+            await add_task_scheduler(action_task=next_process)
 
     @staticmethod
     async def filling_out_report(user_telegram_id: str, status: FinalStatus, comment: str,
-                                 change_status: bool = True) -> AfterFillingReportReturn:
+                                 action_status: ActionStatus = ActionStatus.waiting_to_be_sent) \
+            -> AfterFillingReportReturn:
         """Создает новую строку в результирующей таблице"""
         employee, sent_process = await ActionManager.check_user_response(user_telegram_id)
         if employee and sent_process:
@@ -85,7 +87,7 @@ class ActionManager:
                 status=status,
                 comment=comment
             )
-            if change_status: await ActionManager.update_status(employee, sent_process)
+            await ActionManager.update_status(employee, sent_process, action_status)
             return AfterFillingReportReturn(message="Отлично, мы записали это в БД",
                                             employee=employee,
                                             sent_process=sent_process)

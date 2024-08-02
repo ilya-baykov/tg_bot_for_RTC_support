@@ -18,6 +18,7 @@ class ActionStatus(enum.Enum):
     waiting_to_be_sent = "Ожидает отправки сообщения"
     sent = "Сообщение отправлено"
     completed = "Сообщение обработано сотрудником"
+    postponed = "Отложено"
 
 
 class EmployeesStatus(enum.Enum):

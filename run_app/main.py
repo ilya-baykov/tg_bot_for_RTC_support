@@ -5,11 +5,12 @@ from os import environ
 
 from database.CRUD.delete import ActionsTodayDeleter, SchedulerTasksDeleter, ClearInputDataDeleter
 from logger_settings.setup_logger import setup_logger
-from main_objects import start_scheduler, scheduler, load_json, db
+from main_objects import scheduler, load_json, db
 from run_app.bot_running import start_bot
 from database.CRUD.read import ActionsTodayReader
 from database.CRUD.сreate import ActionsTodayCreator, ClearInputDataCreator
 from sent_task_to_emploeyee.sending_messages import add_task_scheduler
+from utility.sheduler_functions import start_scheduler
 
 
 async def updating_daily_tasks():
@@ -24,12 +25,12 @@ async def updating_daily_tasks():
     if str(datetime.date.today()) not in (await load_json(path=environ.get('JSON_PATH', 'define me!')))['dates']:
 
         await ClearInputDataCreator().create_clear_data()  # Формирует данные в таблице ClearInputData
-        await ActionsTodayCreator().create_new_actions()  # Считываем ClearInputData   и формируем актуальные задачи
+        await ActionsTodayCreator().create_new_actions()  # Считываем ClearInputData и формируем актуальные задачи
 
         pending_actions = await ActionsTodayReader().get_pending_actions()  # Получаем все задачи, ожидающие отправки
         for action in pending_actions:
-            await add_task_scheduler(scheduler=scheduler, action_task=action)  # Передаем задачи в планировщик
-        logger.info(f"Ежедненвые задачи обновлены в {datetime.datetime.now()}")
+            await add_task_scheduler(action_task=action)  # Передаем задачи в планировщик
+        logger.info(f"Ежедневные задачи обновлены в {datetime.datetime.now()}")
 
     else:
         logger.info(f"Сегодня нерабочий день, задачи не обновлены в {datetime.datetime.now()}")
@@ -37,9 +38,9 @@ async def updating_daily_tasks():
 
 async def preparation_for_launch():
     # await db.reset_database()  # Очищает БД
-    await db.create_db()  # Создает все модели в БД
+    # await db.create_db()  # Создает все модели в БД
 
-    await start_scheduler(scheduler)  # Запуск планировщика заданий
+    await start_scheduler()  # Запуск планировщика заданий
     await updating_daily_tasks()  # Формирование актуальных задач
 
     # Добавляем задачу, которая будет выполняться каждый день в 00:00:00

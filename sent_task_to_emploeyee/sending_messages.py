@@ -10,7 +10,7 @@ from database.enums import EmployeesStatus, ActionStatus, SchedulerStatus
 from datetime import datetime, timedelta
 
 from database.models import ActionsToday, ClearInputData
-from run_app.main_objects import bot
+from run_app.main_objects import bot, scheduler
 from sent_task_to_emploeyee.keyboard import keyboard
 
 logger = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ scheduler_tasks_creator = SchedulerTasksCreator()
 scheduler_tasks_updater = SchedulerTasksUpdater()
 
 
-def check_scheduler(scheduler):
+def check_scheduler():
     if not scheduler.running:
         scheduler.start()
         logger.info(f"Планировщик заданий {scheduler} запущен")
@@ -30,8 +30,8 @@ def check_scheduler(scheduler):
         logger.info("Планировщик уже был запущен")
 
 
-async def add_task_scheduler(scheduler, action_task: ActionsToday):
-    check_scheduler(scheduler)
+async def add_task_scheduler(action_task: ActionsToday):
+    check_scheduler()
     input_data_task = await ClearInputTableReader().get_input_task_by_id(action_task.input_data_id)
     scheduled_time = input_data_task.scheduled_time
 
@@ -86,5 +86,3 @@ async def sent_message(action_task: ActionsToday, input_data_task: ClearInputDat
 
     await scheduler_tasks_updater.update_params(task=last_scheduler_tasks_employee,
                                                 status=SchedulerStatus.successfully)
-
-

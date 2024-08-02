@@ -79,7 +79,7 @@ class ClearInputTableReader:
 
                 select(ClearInputData)
                 .filter(ClearInputData.scheduled_time > datetime.datetime.now().time())
-                .order_by(asc(ClearInputData.scheduled_time),asc(ClearInputData.process_name), asc(ClearInputData.id))
+                .order_by(asc(ClearInputData.scheduled_time), asc(ClearInputData.process_name), asc(ClearInputData.id))
 
             )
             result = await request.execute(query)
@@ -124,6 +124,18 @@ class ActionsTodayReader:
             result = await request.execute(query)
             tasks = result.scalars().all()
             logger.info(f"Действия ожидающие отправки:{[task.id for task in tasks]}")
+            return tasks
+
+    @staticmethod
+    async def get_deferred_actions(employee_id) -> List:
+        """Возвращает список всех отложенных действий сотрудника"""
+        async with db.Session() as request:
+            query = (select(ActionsToday)
+                     .filter_by(employee_id=employee_id, status=ActionStatus.postponed)
+                     .order_by(asc(ActionsToday.actual_time_message)))
+            result = await request.execute(query)
+            tasks = result.scalars().all()
+            logger.info(f"Отложенные действия:{[task.id for task in tasks]}")
             return tasks
 
     @staticmethod
