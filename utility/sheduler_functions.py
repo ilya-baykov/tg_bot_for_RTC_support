@@ -5,7 +5,7 @@ from apscheduler.jobstores.base import JobLookupError
 from apscheduler.triggers.date import DateTrigger
 
 from database.CRUD.read import SchedulerTasksReader
-from database.CRUD.update import SchedulerTasksUpdater
+from database.CRUD.update import SchedulerTasksUpdater, ActionsTodayUpdater
 from database.enums import SchedulerStatus
 from database.models import SchedulerTasks
 from run_app.main_objects import scheduler
@@ -41,6 +41,7 @@ async def pause_scheduler_task(task_in_scheduler: SchedulerTasks) -> None:
 async def resume_scheduler_task(task_in_scheduler_id: SchedulerTasks.id) -> None:
     """Возобновляет задачу в планировщике заданий"""
     current_time = datetime.now()
+
     task_in_scheduler = await SchedulerTasksReader.get_tasks(task_in_scheduler_id)
 
     # Если следующая задача должна была выполниться - переводим время

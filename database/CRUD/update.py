@@ -45,12 +45,15 @@ class ActionsTodayUpdater:
                 logger.warning(f"Действие с ID {action.id} не найдено в базе данных.")
 
     @staticmethod
-    async def update_actual_time_message(action, time: datetime.time):
+    async def update_actual_time_message(action: ActionsToday, time: datetime.time | None = None):
         """Устанавливает или изменяет время запуска задачи (отправки сообщения)"""
         async with db.Session() as request:
             action_obj = await request.get(ActionsToday, action.id)
 
             if action_obj:
+                if time is None:
+                    time = datetime.datetime.now().time()  # Устанавливаем текущее время по умолчанию
+
                 # Обновляем время запуска у действия
                 action_obj.actual_time_message = datetime.datetime.combine(datetime.datetime.today(), time)
 

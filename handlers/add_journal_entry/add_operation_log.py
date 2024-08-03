@@ -40,6 +40,9 @@ class ErrorTypes(Enum):
 
 @add_journal_router.message(F.text == EXIT_BUTTON_TEXT)
 async def exit_add_operation_log(message: Message, state: FSMContext):
+    data = await state.get_data()
+    if data.get("scheduler_task_id"):
+        await resume_scheduler_task(data["scheduler_task_id"])
     await state.clear()
     await message.answer("Добавление записи в журнал эксплуатации отменено")
 

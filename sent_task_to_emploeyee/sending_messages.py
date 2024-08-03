@@ -80,6 +80,8 @@ async def sent_message(action_task: ActionsToday, input_data_task: ClearInputDat
 
     # Если сообщение было отправлено успешно, обновляем статус действия и сотрудника, задачи в планировщике
     await actions_today_updater.update_status(action_task, ActionStatus.sent)  # Изменить статус действия
+
+    await actions_today_updater.update_actual_time_message(action_task)
     await employees_updater.update_status(employee, EmployeesStatus.busy)  # Изменяем статус сотрудника
     last_scheduler_tasks_employee = await scheduler_tasks_reader.get_last_task_by_employee(
         employee_id=action_task.employee_id)

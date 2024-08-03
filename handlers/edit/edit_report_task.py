@@ -6,11 +6,11 @@ from aiogram.types import Message, CallbackQuery
 from database.CRUD.read import EmployeesReader, ReportReader, SchedulerTasksReader
 from database.CRUD.update import ReportUpdater
 from database.enums import FinalStatus
-from handlers.edit.keyboard import inline_today, TaskInfo
+from handlers.edit.keyboard import inline_today, TaskInfo, keyboard
 from handlers.edit.state import EditState
 from handlers.filters_general import RegisteredUser
-from run_app.main_objects import scheduler
-from sent_task_to_emploeyee.keyboard import keyboard
+
+
 from utility.sheduler_functions import resume_scheduler_task, pause_scheduler_task
 
 logger = logging.getLogger(__name__)
