@@ -36,8 +36,9 @@ async def take_selection_deferred_tasks(callback_query: CallbackQuery, callback_
 
     # Действие планировщика поставить на паузу
     task_in_scheduler = await SchedulerTasksReader().get_last_task_by_employee(employee_id=employee.id)
-    await pause_scheduler_task(task_in_scheduler)
-    await state.update_data(scheduler_task_id=task_in_scheduler.id)
+    if task_in_scheduler:
+        await pause_scheduler_task(task_in_scheduler)
+        await state.update_data(scheduler_task_id=task_in_scheduler.id)
 
     await callback_query.answer()
     await state.update_data(action_task_id=callback_data.action_task_id)

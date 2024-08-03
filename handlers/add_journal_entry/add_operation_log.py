@@ -8,13 +8,10 @@ from aiogram.types import Message
 
 from database.CRUD.read import EmployeesReader, ProcessDirectoryReader, SchedulerTasksReader
 from database.CRUD.сreate import OperationLogCreator
-from database.enums import ActionStatus
-from handlers.add_journal_entry.constant_text import EXIT_BUTTON_TEXT, SENT_BUTTON_TEXT
+from handlers.add_journal_entry.constant_text import EXIT_BUTTON_TEXT, SENT_BUTTON_TEXT, VM_PREFIX
 from handlers.add_journal_entry.keyboard import add_journal_log_kb
 from handlers.add_journal_entry.state import AddOperationLogState, handle_state
 from handlers.filters_general import RegisteredUser
-from utility.ActionManager import ActionManager
-from run_app.main_objects import scheduler
 from utility.sheduler_functions import pause_scheduler_task, resume_scheduler_task
 
 logger = logging.getLogger(__name__)
@@ -203,6 +200,7 @@ async def save_journal_log(message: Message, state: FSMContext):
 
         data = await state.get_data()
         try:
+            vm_name = data["virtual_machine"]
             await OperationLogCreator.create_new_log(
                 process_name=data["process"].process_name,  # Номер RPA
                 employee_name=data["employee_name"],  # Имя сотрудника, отвечающего за процесс
@@ -215,7 +213,7 @@ async def save_journal_log(message: Message, state: FSMContext):
                 jira_link=data["process"].jira_link,  # Ссылка на робота в Jira
                 decision_date=data["decision_date"],  # Дата устранения ошибки в произвольной форме
                 jira_issue=data["process"].jira_issue,  # Ссылка на задачу в Jira
-                virtual_machine=data["virtual_machine"],  # Номер виртуальной машины
+                virtual_machine=vm_name if VM_PREFIX in vm_name else VM_PREFIX + vm_name,  # Номер виртуальной машины
                 execution_time=data["execution_time"],  # Время выполнения в ч.
                 OTRS_ticket=data["OTRS_ticket"]  # Тикет в OTRS
             )

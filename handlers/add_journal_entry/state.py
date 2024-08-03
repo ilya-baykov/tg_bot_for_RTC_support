@@ -5,12 +5,6 @@ from aiogram.types import Message
 from handlers.add_journal_entry.constant_text import BACK_BUTTON_TEXT, SENT_BUTTON_TEXT, SKIP_BUTTON_TEXT
 
 
-async def saving_log_entry(message: Message, state: FSMContext):
-    """Сохраняем запись в журнал эксплуатации"""
-    await message.answer("ГОТОВО")
-    await state.clear()
-
-
 class AddOperationLogState(StatesGroup):
     enter_process_name = State()
     enter_error_description = State()
