@@ -4,7 +4,7 @@ import os
 
 LOG_FORMAT = '%(asctime)s : %(name)s : %(levelname)s : %(message)s'
 LOGS_DIR = os.getenv("LOGS_PATH", "define me!")  # получаем путь к папке LOGS
-os.makedirs(LOGS_DIR, exist_ok=True)  # Проверка наличия папки ( при ее отсуствии - создание )
+os.makedirs(LOGS_DIR, exist_ok=True)  # Проверка наличия папки (при ее отсуствии - создание)
 
 
 def setup_logger():
