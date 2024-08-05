@@ -90,6 +90,8 @@ async def change_entry_report(message: Message, state: FSMContext):
         comment=message.text)
     await actions_today_updater.update_status(action=task, status=ActionStatus.completed)
     await employees_updater.update_status(user_data.get("employee"), EmployeesStatus.available)
+    await message.answer("Запись успешно добавлена в БД")
+    await state.clear()
 
 
 def register_postponed_handlers(dp):
