@@ -117,6 +117,16 @@ class ActionsTodayReader:
             return task
 
     @staticmethod
+    async def get_action_by_id(action_id: int):
+        """Получаем объект задачи по id"""
+        async with db.Session() as request:
+            query = select(ActionsToday).filter_by(id=int(action_id))
+            result = await request.execute(query)
+            task = result.scalar_one_or_none()
+            logger.info(f"По ключу {action_id} было получено {task}")
+            return task
+
+    @staticmethod
     async def get_pending_actions() -> List:
         """Возвращает список всех действий, ожидающих отправки сообщения """
         async with db.Session() as request:
