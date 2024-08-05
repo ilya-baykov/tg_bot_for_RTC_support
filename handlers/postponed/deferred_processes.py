@@ -7,9 +7,9 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 
 from database.CRUD.read import EmployeesReader, SchedulerTasksReader, ActionsTodayReader, ClearInputTableReader
-from database.CRUD.update import ReportUpdater
 from database.CRUD.сreate import employees_updater
 from database.enums import FinalStatus, ActionStatus, EmployeesStatus
+from database.models import Employees
 from handlers.filters_general import RegisteredUser
 from handlers.postponed.keyboard import inline_deferred_tasks, ActionInfo, keyboard_for_report
 from handlers.postponed.state import PostponedState
@@ -34,6 +34,7 @@ async def choice_deferred_tasks(message: Message, state: FSMContext):
 
 @postponed_router.callback_query(ActionInfo.filter())
 async def take_selection_deferred_tasks(callback_query: CallbackQuery, callback_data: ActionInfo, state: FSMContext):
+    """Обрабатывает выбор отложенного процесса"""
     employee = await EmployeesReader.get_employee_by_telegram_id_or_username(
         telegram_id=str(callback_query.from_user.id))  # Получаем сотрудника
 
@@ -52,46 +53,70 @@ async def take_selection_deferred_tasks(callback_query: CallbackQuery, callback_
         reply_markup=keyboard_for_report)
 
 
-@postponed_router.message(PostponedState.getting_task, F.text.in_({"Выполнено", "Не выполнено"}))
-async def state_update_data(message: Message, state: FSMContext):
-    await state.set_state(PostponedState.task_processing)
-    if message.text == "Выполнено":
-        await state.update_data({"status": FinalStatus.successfully})
-    elif message.text == "Не выполнено":
-        await state.update_data({"status": FinalStatus.failed})
-    await message.answer("Напиши комментарий")
-
-
-@postponed_router.message(PostponedState.task_processing)
-async def change_entry_report(message: Message, state: FSMContext):
+@postponed_router.message(PostponedState.getting_task, F.text == "Выполнено")
+async def deferred_process_successful(message: Message, state: FSMContext):
+    """Заполняет запись в отчётной таблице со статусом 'ActionStatus.completed' """
     user_data = await state.get_data()
-    task_id = user_data.get("action_task_id")
+
+    message_response = await report_save(employee=user_data.get("employee"), task_id=user_data.get("action_task_id"),
+                                         status=FinalStatus.successfully, comment=message.text)
+
     task_in_scheduler_id = user_data.get('scheduler_task_id')
-    if task_in_scheduler_id:
-        await resume_scheduler_task(task_in_scheduler_id)
-    status = user_data.get("status")
-    task = await ActionsTodayReader.get_action_by_id(task_id)
-    process = await ClearInputTableReader.get_input_task_by_id(task.input_data_id)
-
-    actual_dispatch_time = task.actual_time_message
-
-    time_difference = datetime.now() - actual_dispatch_time
-    time_difference_without_microseconds = time_difference - timedelta(microseconds=time_difference.microseconds)
-
-    await report_creator.create_new_report(
-        process_name=process.process_name,
-        action_description=process.action_description,
-        employee_name=user_data.get("employee").name,
-        expected_dispatch_time=datetime.combine(datetime.today(), process.scheduled_time),
-        actual_dispatch_time=actual_dispatch_time,
-        employee_response_time=datetime.now(),
-        elapsed_time=time_difference_without_microseconds,
-        status=status,
-        comment=message.text)
-    await actions_today_updater.update_status(action=task, status=ActionStatus.completed)
-    await employees_updater.update_status(user_data.get("employee"), EmployeesStatus.available)
-    await message.answer("Запись успешно добавлена в БД")
+    if task_in_scheduler_id: await resume_scheduler_task(task_in_scheduler_id)
     await state.clear()
+    await message.answer(message_response)
+
+
+@postponed_router.message(PostponedState.getting_task, F.text == "Не выполнено")
+async def deferred_process_failed(message: Message, state: FSMContext):
+    """Переходим в следующее состояние - ввода комментария при отклоненном процессе"""
+    await message.answer("Напишите комментарий")
+    await state.set_state(PostponedState.task_comment)
+
+
+@postponed_router.message(PostponedState.task_comment)
+async def change_entry_report(message: Message, state: FSMContext):
+    """Получаем комментарий по отложенному отклоненному процессу и записываем его в отчётную таблицу"""
+    user_data = await state.get_data()
+
+    message_response = await report_save(employee=user_data.get("employee"), task_id=user_data.get("action_task_id"),
+                                         status=FinalStatus.failed, comment=message.text)
+    task_in_scheduler_id = user_data.get('scheduler_task_id')
+    if task_in_scheduler_id: await resume_scheduler_task(task_in_scheduler_id)
+    await state.clear()
+    await message.answer(message_response)
+
+
+async def report_save(employee: Employees, task_id: int, status: FinalStatus, comment: str) -> str:
+    """Сохраняет запись в отчётной таблице для отложенного процесса.
+       Возвращает сообщение пользователю об успешности записи
+    """
+    try:
+        task = await ActionsTodayReader.get_action_by_id(task_id)
+        process = await ClearInputTableReader.get_input_task_by_id(task.input_data_id)
+
+        actual_dispatch_time = task.actual_time_message
+
+        time_difference = datetime.now() - actual_dispatch_time
+        time_difference_without_microseconds = time_difference - timedelta(microseconds=time_difference.microseconds)
+
+        await report_creator.create_new_report(
+            process_name=process.process_name,
+            action_description=process.action_description,
+            employee_name=employee.name,
+            expected_dispatch_time=datetime.combine(datetime.today(), process.scheduled_time),
+            actual_dispatch_time=actual_dispatch_time,
+            employee_response_time=datetime.now(),
+            elapsed_time=time_difference_without_microseconds,
+            status=status,
+            comment=comment)
+        await actions_today_updater.update_status(action=task, status=ActionStatus.completed)
+        await employees_updater.update_status(employee, EmployeesStatus.available)
+        return "Отлично, запись добавлена в БД"
+    except Exception as e:
+        logger.error(
+            f"Ошибка при попытке внести запись в отчёт по отложенной задаче {task_id} : {e} ")
+        return "При попытке сохранить запись в отчёт произошла неизвестная ошибка"
 
 
 def register_postponed_handlers(dp):

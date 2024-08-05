@@ -10,7 +10,6 @@ from handlers.edit.keyboard import inline_today, TaskInfo, keyboard
 from handlers.edit.state import EditState
 from handlers.filters_general import RegisteredUser
 
-
 from utility.sheduler_functions import resume_scheduler_task, pause_scheduler_task
 
 logger = logging.getLogger(__name__)
@@ -45,7 +44,7 @@ async def process_task_selection(callback_query: CallbackQuery, callback_data: T
     await state.set_state(EditState.on_edit)
 
     await callback_query.message.answer(
-        text=f"Отредактируйте задачу {callback_data.task_id}",
+        text=f"Отредактируйте задачу",
         reply_markup=keyboard
     )
 
