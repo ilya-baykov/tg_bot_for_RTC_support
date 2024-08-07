@@ -1,6 +1,6 @@
 import datetime
 from typing import Annotated
-from sqlalchemy import ForeignKey, Interval, Time, Enum as PgEnum, LargeBinary
+from sqlalchemy import ForeignKey, Interval, Time, LargeBinary
 from sqlalchemy.orm import Mapped, relationship, mapped_column
 
 from database.Base import Base, str_20, str_50, str_100, str_512

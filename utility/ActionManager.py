@@ -7,7 +7,6 @@ from database.CRUD.сreate import employees_reader, actions_today_reader, employ
     ReportCreator
 from database.enums import ActionStatus, EmployeesStatus, FinalStatus
 from database.models import Employees, ActionsToday
-from run_app.main_objects import scheduler
 from sent_task_to_emploeyee.sending_messages import add_task_scheduler
 
 logger = logging.getLogger(__name__)

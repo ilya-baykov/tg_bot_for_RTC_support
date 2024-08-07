@@ -5,10 +5,11 @@ from apscheduler.jobstores.base import JobLookupError
 from apscheduler.triggers.date import DateTrigger
 
 from database.CRUD.read import SchedulerTasksReader
-from database.CRUD.update import SchedulerTasksUpdater, ActionsTodayUpdater
+from database.CRUD.update import SchedulerTasksUpdater
 from database.enums import SchedulerStatus
 from database.models import SchedulerTasks
 from run_app.main_objects import scheduler
+from utility.updating_daily_tasks import updating_daily_tasks
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,9 @@ async def start_scheduler():
         logger.info("Прошлые задачи планировщика были очищены")
 
     scheduler.start()
+    # Добавляем задачу, которая будет выполняться каждый день в 00:00:00
+    scheduler.add_job(updating_daily_tasks, trigger="cron", hour=0, minute=0, second=0, misfire_grace_time=60)
+
     logger.info(f"Планировщик заданий {scheduler} запущен")
     logger.info("Все предыдущие задачи планировщика были удалены")
 
