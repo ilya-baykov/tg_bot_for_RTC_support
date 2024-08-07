@@ -200,7 +200,7 @@ class OperationLogCreator:
                              error_reason: str | None, error_solution: str | None,
                              error_type: str | None, developer: str | None, jira_link: str | None,
                              decision_date: str | None, jira_issue: str | None, virtual_machine: str,
-                             execution_time: str | None, OTRS_ticket: str | None):
+                             execution_time: str | None, OTRS_ticket: str | None, photo_path: str | None):
         async with db.Session() as request:
             request.add(OperationLog(
                 process_name=process_name,  # Номер RPA
@@ -216,7 +216,9 @@ class OperationLogCreator:
                 OTRS_ticket=OTRS_ticket,  # Ссылка на тикет в OTRS
                 jira_issue=jira_issue,  # Ссылка на задачу в Jira
                 virtual_machine=virtual_machine,  # Номер виртуальной машины
-                execution_time=execution_time  # Время выполнения в ч.
+                execution_time=execution_time,  # Время выполнения в ч.
+                photo=photo_path
+
             ))
             await request.commit()
             logger.info(f"Добавлена запись в журнал эксплуатации. Имя процесса - {process_name}")

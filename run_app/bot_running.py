@@ -7,7 +7,7 @@ from handlers.processing_employee_responses.employee_responses import register_u
 from handlers.start.registration import register_start_handlers
 from handlers.unknown_commands.unknown_response import register_unknown_command
 from main_objects import bot
-from take_photo.state import register_photo_by_user
+# from take_photo.state import register_photo_by_user
 
 dp = Dispatcher()
 
@@ -16,7 +16,7 @@ async def start_bot():
     # Регистрация обработчиков
 
     register_start_handlers(dp)  # Стартовый обработчик
-    register_photo_by_user(dp)
+    # register_photo_by_user(dp)
     register_postponed_handlers(dp)  # Обработчик отложенных процессов
     register_edit_handlers(dp)  # Обработчик для редактирования отчетов
     register_user_response(dp)  # Обработчик ответов сотрудников

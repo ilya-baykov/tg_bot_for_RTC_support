@@ -100,7 +100,6 @@ class Report(Base):
     status: Mapped[str_50]
 
     comment: Mapped[str_512]
-    photo: Mapped[bytes] = mapped_column(LargeBinary, nullable=True)
 
 
 class UserAccess(Base):
@@ -137,3 +136,4 @@ class OperationLog(Base):
     jira_issue: Mapped[str_100] = mapped_column(nullable=True)  # Ссылка на задачу в Jira
     virtual_machine: Mapped[str_100]  # Номер виртуальной машины
     execution_time: Mapped[str_50] = mapped_column(nullable=True)  # Время выполнения в ч.
+    photo: Mapped[str_512] = mapped_column(nullable=True)

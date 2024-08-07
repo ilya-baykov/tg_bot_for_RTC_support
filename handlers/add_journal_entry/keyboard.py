@@ -23,7 +23,8 @@ SKIP_BUTTONS_STATES = (AddOperationLogState.enter_error_reason,
                        AddOperationLogState.enter_date_solution,
                        AddOperationLogState.enter_ticket_OTRS,
                        AddOperationLogState.enter_execution_time,
-                       AddOperationLogState.enter_type_error)
+                       AddOperationLogState.enter_type_error,
+                       AddOperationLogState.take_photo)
 
 
 async def add_journal_log_kb(current_state: FSMContext):

@@ -1,5 +1,6 @@
 import logging
 from enum import Enum
+from typing import List
 
 from aiogram import Router, F
 from aiogram.filters import Command
@@ -10,8 +11,9 @@ from database.CRUD.read import EmployeesReader, ProcessDirectoryReader, Schedule
 from database.CRUD.сreate import OperationLogCreator
 from handlers.add_journal_entry.constant_text import EXIT_BUTTON_TEXT, SENT_BUTTON_TEXT, VM_PREFIX
 from handlers.add_journal_entry.keyboard import add_journal_log_kb
-from handlers.add_journal_entry.state import AddOperationLogState, handle_state
+from handlers.add_journal_entry.state import AddOperationLogState, handle_state, PhotoPath
 from handlers.filters_general import RegisteredUser
+from run_app.main_objects import bot
 from utility.sheduler_functions import pause_scheduler_task, resume_scheduler_task
 
 logger = logging.getLogger(__name__)
@@ -183,22 +185,54 @@ async def enter_execution_time(message: Message, state: FSMContext):
 async def enter_type_error(message: Message, state: FSMContext):
     """Получаем тип ошибки"""
     answer = await handle_state(message, state, "error_type",
-                                previous_state=AddOperationLogState.enter_date_solution,
+                                previous_state=AddOperationLogState.enter_execution_time,
+                                previous_message="Введите время выполнения,ч",
+                                next_state=AddOperationLogState.take_photo,
+                                next_message="Прикрепите одно фото или пропустите этот шаг")
+    await message.answer(answer, reply_markup=await add_journal_log_kb(state))
+
+
+@add_journal_router.message(AddOperationLogState.take_photo)
+async def get_photo(message: Message, state: FSMContext):
+    """Получаем фото от пользователя"""
+    try:
+        if message.photo:
+            path = f"C:\\Users\\ilyab\\PycharmProjects\\tg_bot_for_RTC_support\\tmp_photo\\{message.photo[-1].file_id}.jpg"
+            data = await state.get_data()
+
+            if data.get("photo_path"):
+                data["photo_path"].append(PhotoPath(tg_photo_obj=message.photo[-1], path=path))
+            else:
+                data["photo_path"] = [PhotoPath(tg_photo_obj=message.photo[-1], path=path)]
+            await state.update_data(data)
+    except Exception as e:
+        logger.error(f"Ошибка при попытке получить фото ", e)
+
+    answer = await handle_state(message, state, "_tmp",
+                                previous_state=AddOperationLogState.enter_type_error,
                                 previous_message="Введите дату решения ошибки",
                                 next_state=AddOperationLogState.saving_log_entry,
-                                next_message="Все поля заполнены")
+                                next_message="Фото скачено")
     await message.answer(answer, reply_markup=await add_journal_log_kb(state))
 
 
 @add_journal_router.message(AddOperationLogState.saving_log_entry)
 async def save_journal_log(message: Message, state: FSMContext):
     """Получаем тип ошибки"""
+    await message.answer("Все поля заполнены")
     answer = await handle_state(message, state, "",
-                                previous_state=AddOperationLogState.enter_type_error,
-                                previous_message="Введите тип ошибки")
+                                previous_state=AddOperationLogState.take_photo,
+                                previous_message="Прикрепите одно фото или пропустите этот шаг")
     if answer == SENT_BUTTON_TEXT:
 
         data = await state.get_data()
+        photos: List[PhotoPath] = data.get("photo_path")
+        if photos:
+            try:
+                for photo in photos:
+                    await bot.download(photo.tg_photo_obj, destination=photo.path)
+            except Exception as e:
+                logger.error(f"Ошибка при попытке сохранить фото", e)
         try:
             vm_name = data["virtual_machine"]
             await OperationLogCreator.create_new_log(
@@ -215,7 +249,8 @@ async def save_journal_log(message: Message, state: FSMContext):
                 jira_issue=data["process"].jira_issue,  # Ссылка на задачу в Jira
                 virtual_machine=vm_name if VM_PREFIX in vm_name else VM_PREFIX + vm_name,  # Номер виртуальной машины
                 execution_time=data["execution_time"],  # Время выполнения в ч.
-                OTRS_ticket=data["OTRS_ticket"]  # Тикет в OTRS
+                OTRS_ticket=data["OTRS_ticket"],  # Тикет в OTRS
+                photo_path=photos[-1].path if photos else None
             )
             await message.answer(f"Запись успешно добавлена в журнал эксплуатации")
             logger.info(f"Запись : {data['process'].process_name} была успешно добавлена в журнал эксплуатации")

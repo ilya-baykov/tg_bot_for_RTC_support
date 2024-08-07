@@ -1,8 +1,13 @@
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from aiogram.types import Message
-
+from aiogram.types import Message, PhotoSize
+from typing import NamedTuple
 from handlers.add_journal_entry.constant_text import BACK_BUTTON_TEXT, SENT_BUTTON_TEXT, SKIP_BUTTON_TEXT
+
+
+class PhotoPath(NamedTuple):
+    tg_photo_obj: PhotoSize
+    path: str
 
 
 class AddOperationLogState(StatesGroup):
@@ -16,6 +21,7 @@ class AddOperationLogState(StatesGroup):
     enter_error_solution = State()
     enter_date_solution = State()
     enter_type_error = State()
+    take_photo = State()
     saving_log_entry = State()
 
 
