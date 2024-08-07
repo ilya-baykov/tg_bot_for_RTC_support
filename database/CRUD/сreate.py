@@ -186,7 +186,8 @@ class ClearInputDataCreator:
                         telegram_username=row.telegram_username,
                         interval=row.interval,
                         completion_day=row.completion_day,
-                        scheduled_time=time
+                        scheduled_time=time,
+                        priority=row.priority
 
                     ))
                     logger.info(f"В таблицу clear_input_table была добавлена запись {row.process_name}:{time}")

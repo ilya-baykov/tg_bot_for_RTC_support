@@ -35,3 +35,9 @@ class SchedulerStatus(enum.Enum):
     awaiting_dispatch = "Ожидает отправки"
     successfully = "Успешно выполнено"
     suspended = "Приостановлено"
+
+
+class Priority(enum.Enum):
+    Высокий = "Высокий приоритет"
+    Средний = "Средний приоритет"
+    Низкий = "Низкий приоритет"

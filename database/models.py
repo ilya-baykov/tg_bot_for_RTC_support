@@ -1,6 +1,6 @@
 import datetime
 from typing import Annotated
-from sqlalchemy import ForeignKey, Interval, Time, Enum as PgEnum
+from sqlalchemy import ForeignKey, Interval, Time, Enum as PgEnum, LargeBinary
 from sqlalchemy.orm import Mapped, relationship, mapped_column
 
 from database.Base import Base, str_20, str_50, str_100, str_512
@@ -20,6 +20,7 @@ class RawInputData(Base):
 
     completion_day: Mapped[str_50] = mapped_column(nullable=True)  # День когда запускать процесс
     scheduled_time: Mapped[str_50] = mapped_column(nullable=True)  # Время отправки сообщения об процессе
+    priority: Mapped[Priority]
 
 
 class ClearInputData(Base):
@@ -33,6 +34,7 @@ class ClearInputData(Base):
 
     completion_day: Mapped[str_50] = mapped_column(nullable=True)  # День когда запускать процесс
     scheduled_time: Mapped[datetime.time] = mapped_column(Time)  # Время отправки сообщения об процессе
+    priority: Mapped[Priority]
 
 
 class ActionsToday(Base):
@@ -98,6 +100,7 @@ class Report(Base):
     status: Mapped[str_50]
 
     comment: Mapped[str_512]
+    photo: Mapped[bytes] = mapped_column(LargeBinary, nullable=True)
 
 
 class UserAccess(Base):

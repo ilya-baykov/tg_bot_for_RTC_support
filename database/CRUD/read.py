@@ -1,7 +1,7 @@
 import logging
 import difflib
 from typing import List
-from sqlalchemy import select, asc, desc, func
+from sqlalchemy import select, asc, desc, func, case
 
 from run_app.main_objects import db
 from database.models import *
@@ -74,12 +74,23 @@ class ClearInputTableReader:
     async def get_all_actions():
         """Возвращает список всех действий из исходной таблицы"""
 
-        async with (db.Session() as request):
+        async with db.Session() as request:
+            priority_case = case(
+                (ClearInputData.priority == Priority.Высокий, 1),
+                (ClearInputData.priority == Priority.Средний, 2),
+                (ClearInputData.priority == Priority.Низкий, 3),
+                else_=4
+            )
             query = (
 
                 select(ClearInputData)
                 .filter(ClearInputData.scheduled_time > datetime.datetime.now().time())
-                .order_by(asc(ClearInputData.scheduled_time), asc(ClearInputData.process_name), asc(ClearInputData.id))
+                .order_by(
+                    asc(ClearInputData.scheduled_time),
+                    asc(priority_case),
+                    asc(ClearInputData.process_name),
+                    asc(ClearInputData.id)
+                )
 
             )
             result = await request.execute(query)

@@ -22,7 +22,7 @@ async def updating_daily_tasks():
     await ClearInputDataDeleter().clear_table()
 
     # Проверка рабочего дня
-    if str(datetime.date.today()) not in (await load_json(path=environ.get('JSON_PATH', 'define me!')))['dates'] or True:
+    if str(datetime.date.today()) not in (await load_json(path=environ.get('JSON_PATH', 'define me!')))['dates']:
 
         await ClearInputDataCreator().create_clear_data()  # Формирует данные в таблице ClearInputData
         await ActionsTodayCreator().create_new_actions()  # Считываем ClearInputData и формируем актуальные задачи
@@ -38,7 +38,7 @@ async def updating_daily_tasks():
 
 async def preparation_for_launch():
     # await db.reset_database()  # Очищает БД
-    # await db.create_db()  # Создает все модели в БД
+    await db.create_db()  # Создает все модели в БД
 
     await start_scheduler()  # Запуск планировщика заданий
     await updating_daily_tasks()  # Формирование актуальных задач
