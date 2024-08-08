@@ -1,4 +1,6 @@
 import logging
+import os
+from datetime import datetime
 from enum import Enum
 from typing import List
 
@@ -197,8 +199,18 @@ async def get_photo(message: Message, state: FSMContext):
     """Получаем фото от пользователя"""
     try:
         if message.photo:
-            path = f"C:\\Users\\ilyab\\PycharmProjects\\tg_bot_for_RTC_support\\tmp_photo\\{message.photo[-1].file_id}.jpg"
+
             data = await state.get_data()
+
+            folder_path = (f"{os.environ.get('SCREENSHOTS_PATH', 'define screenshots_path')}"
+                           f"\\{data['process'].process_name}\\{str(datetime.now().strftime('%y_%m_%d'))}"
+                           f"\\{data['employee_name'].replace(' ', '_')}")
+            try:
+                os.makedirs(folder_path, exist_ok=True)
+            except Exception as e:
+                print(e)
+            path = f"{folder_path}\\{message.photo[-1].file_id}.jpg"
+            print(path)
 
             if data.get("photo_path"):
                 data["photo_path"].append(PhotoPath(tg_photo_obj=message.photo[-1], path=path))
