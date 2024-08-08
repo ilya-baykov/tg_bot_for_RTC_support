@@ -183,7 +183,7 @@ class ActionsTodayReader:
                 select(ActionsToday)
                 .join(ClearInputData, ActionsToday.input_data_id == ClearInputData.id)
                 .filter(ActionsToday.employee_id == employee_id, ActionsToday.status == ActionStatus.queued_to_be_added)
-                .order_by(asc(ClearInputData.scheduled_time))
+                .order_by(ActionsToday.id)
             )
             result = await request.execute(query)
             actions = result.scalars().all()
