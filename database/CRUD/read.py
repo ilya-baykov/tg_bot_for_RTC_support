@@ -76,14 +76,15 @@ class ClearInputTableReader:
 
         async with db.Session() as request:
             priority_case = case(
-                (ClearInputData.priority == Priority.Высокий, 1),
-                (ClearInputData.priority == Priority.Средний, 2),
-                (ClearInputData.priority == Priority.Низкий, 3),
+                (ProcessDirectory.priority == Priority.Высокий, 1),
+                (ProcessDirectory.priority == Priority.Средний, 2),
+                (ProcessDirectory.priority == Priority.Низкий, 3),
                 else_=4
             )
             query = (
 
-                select(ClearInputData)
+                select(ClearInputData, ProcessDirectory.priority)
+                .join(ProcessDirectory, ProcessDirectory.process_name == ClearInputData.process_name)
                 .filter(ClearInputData.scheduled_time > datetime.datetime.now().time())
                 .order_by(
                     asc(ClearInputData.scheduled_time),
@@ -95,7 +96,6 @@ class ClearInputTableReader:
             )
             result = await request.execute(query)
             tasks = result.scalars().all()
-
             logger.info(f"Найденные актуальные задачи: {[task.process_name for task in tasks]}")
             return tasks
 

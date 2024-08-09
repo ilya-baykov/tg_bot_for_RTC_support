@@ -20,7 +20,6 @@ class RawInputData(Base):
 
     completion_day: Mapped[str_50] = mapped_column(nullable=True)  # День когда запускать процесс
     scheduled_time: Mapped[str_50] = mapped_column(nullable=True)  # Время отправки сообщения об процессе
-    priority: Mapped[Priority]
 
 
 class ClearInputData(Base):
@@ -34,7 +33,7 @@ class ClearInputData(Base):
 
     completion_day: Mapped[str_50] = mapped_column(nullable=True)  # День когда запускать процесс
     scheduled_time: Mapped[datetime.time] = mapped_column(Time)  # Время отправки сообщения об процессе
-    priority: Mapped[Priority]
+
 
 
 class ActionsToday(Base):
@@ -116,6 +115,7 @@ class ProcessDirectory(Base):
     developer: Mapped[str_100]  # Разработчик, отвечающий за процесс
     jira_link: Mapped[str_100]  # Ссылка на робота в Jira
     jira_issue: Mapped[str_100] = mapped_column(nullable=True)  # Ссылка на задачу в Jira
+    priority: Mapped[Priority]
 
 
 class OperationLog(Base):
